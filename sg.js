@@ -10,23 +10,25 @@ function isGeneratorFunction(obj) {
     return isGenerator(constructor.prototype);
 }
 
-module.exports = function sg(generator, ...args) {
-    const iterator = generator(...args);
-    function loop(next) {
-        if(next.done) {
-            return next.value;
+module.exports = function sg(iterator) {
+    return new Promise((resolve, reject) => {
+        function loop(next) {
+            if(next.done) {
+                resolve(next.value);
+            }
+            const [task, ...args] = next.value;
+            if(typeof task !== 'function') {
+                throw new Error(`yielded task must be callable got ${typeof task}`);
+            }
+            try {
+                Promise.resolve(task(...args))
+                .then(result => loop(iterator.next(result)))
+                .catch(error => loop(iterator.throw(error)));
+            } catch (error) {
+                loop(iterator.throw(error));
+            }
         }
-        const [task, ...args] = next.value;
-        if(typeof task !== 'function') {
-            throw new Error(`yielded task must be callable got ${task}`);
-        }
-        try {
-            const result = task(...args);
-            return loop(iterator.next(result));
-        } catch (error) {
-            return loop(iterator.throw(error));
-        }
-    }
 
-    return loop(iterator.next());
+        loop(iterator.next());
+    });
 }

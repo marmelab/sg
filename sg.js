@@ -39,6 +39,62 @@ const getIterator = (generator, ...args) => {
     return generator(...args);
 };
 
+const handleCallEffect = ({ callable, args }) => {
+    if(isGenerator(callable)) {
+        return sg(callable, ...args);
+    }
+    try {
+        return Promise.resolve(callable(...args));
+    } catch (error) {
+        return Promise.reject(error);
+    }
+}
+
+const handleCpsEffect = ({ callable, args }) => {
+    return new Promise((resolve, reject) => {
+        try {
+            callable(...args, (error, result) => {
+                if (error) {
+                    return reject(error);
+                }
+
+                return resolve(result);
+            });
+        } catch (error) {
+            return reject(error);
+        }
+    });
+}
+
+const handleThunkEffect = ({ callable, args }) => {
+    return new Promise((resolve, reject) => {
+        try {
+            callable(...args)((error, result) => {
+                if(error) {
+                    return reject(error);
+                }
+
+                return resolve(result);
+            });
+        } catch (error) {
+            return reject(error);
+        }
+    });
+}
+
+const handleEffect = (effect) => {
+    switch(effect.type) {
+    case 'call':
+        return handleCallEffect(effect);
+    case 'cps':
+        return handleCpsEffect(effect);
+    case 'thunk':
+        return handleThunkEffect(effect);
+    default:
+        throw new Error(`Unrecognized effect: ${effect}`);
+    }
+}
+
 function sg(generator, ...args) {
     const iterator = getIterator(generator, ...args);
     return new Promise((resolve, reject) => {
@@ -47,42 +103,12 @@ function sg(generator, ...args) {
                 return resolve(next.value);
             }
             const effect = next.value;
-            switch(effect.type) {
-                case 'call':
-                    if(isGenerator(effect.callable)) {
-                        return sg(generator, ...args)
-                        .then(result => loop(iterator.next(result)))
-                        .catch(error => loop(iterator.throw(error)));
-                    }
-                    try {
-                        return Promise.resolve(effect.callable(...effect.args))
-                        .then(result => loop(iterator.next(result)))
-                        .catch(error => loop(iterator.throw(error)));
-                    } catch (error) {
-                        return loop(iterator.throw(error));
-                    }
-                case 'cps':
-                    try {
-                        effect.callable(...effect.args, (error, result) => {
-                            if (error) {
-                                return loop(iterator.throw(error));
-                            }
-
-                            return loop(iterator.next(result));
-                        });
-                    } catch (error) {
-                        return loop(iterator.throw(error));
-                    }
-                case 'thunk':
-                    return callable(...args)((error, result) => {
-                        if(error) {
-                            return loop(iterator.throw(error));
-                        }
-
-                        return loop(iterator.next(result));
-                    });
-                default:
-                    reject(new Error(`Unrecognized effect: ${effect}`));
+            try {
+                return handleEffect(effect)
+                .then(result => loop(iterator.next(result)))
+                .catch(error => loop(iterator.throw(error)));
+            } catch (error) {
+                reject(error);
             }
         }
 

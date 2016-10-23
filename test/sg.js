@@ -3,26 +3,28 @@ const sg = require('../sg');
 
 describe('sg', function () {
     it('should execute generator', function (done) {
-        const add = (a, b) => { return a + b; };
-        const multiply = (a, b) => { return Promise.resolve(a * b); };
+        const add = (a, b) => a + b;
+        const multiply = (a, b) => Promise.resolve(a * b);
+        const substract = (a, b, cb) => cb(null, a - b);
         const boom = () => {throw new Error('boom');}
         function* compute(a, b) {
-            const c = yield [add, a, b];
+            const c = yield sg.call(add, a, b);
             try {
-                yield [boom];
+                yield sg.call(boom);
             } catch (error) {
                 console.log(error);
             }
 
-            return yield [multiply, c, a];
+            const d = yield sg.call(multiply, c, a);
+
+            return yield sg.cps(substract, d, b);
         }
 
         sg(compute(2, 3))
         .then(result => {
-            assert.equal(result, 10);
+            assert.equal(result, 7);
             done();
         }).catch(error => {
-            console.log(error.stack);
             done(error);
         });
 

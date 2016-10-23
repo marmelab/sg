@@ -10,16 +10,22 @@ function isGenerator(obj) {
     return isIterator(constructor.prototype);
 }
 
+const call = (callable, ...args) => ({
+    type: 'call',
+    callable,
+    args,
+});
+
 const cps = (callable, ...args) => ({
     type: 'cps',
     callable,
     args
 });
 
-const call = (callable, ...args) => ({
-    type: 'call',
+const thunk = (callable, ...args) => ({
+    type: 'thunk',
     callable,
-    args,
+    args
 });
 
 const getIterator = (generator, ...args) => {
@@ -62,6 +68,14 @@ function sg(generator, ...args) {
                     } catch (error) {
                         return loop(iterator.throw(error));
                     }
+                case 'thunk':
+                    return callable(...args)((error, result) => {
+                        if(error) {
+                            return loop(iterator.throw(error));
+                        }
+
+                        return loop(iterator.next(result));
+                    });
                 default:
                     reject(new Error(`Unrecognized effect: ${effect}`));
             }

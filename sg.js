@@ -49,6 +49,11 @@ function sg(generator, ...args) {
             const effect = next.value;
             switch(effect.type) {
                 case 'call':
+                    if(isGenerator(effect.callable)) {
+                        return sg(generator, ...args)
+                        .then(result => loop(iterator.next(result)))
+                        .catch(error => loop(iterator.throw(error)));
+                    }
                     try {
                         return Promise.resolve(effect.callable(...effect.args))
                         .then(result => loop(iterator.next(result)))

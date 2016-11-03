@@ -1,3 +1,5 @@
+import co from 'co';
+
 function isIterator(obj) {
   return 'function' == typeof obj.next && 'function' == typeof obj.throw;
 }
@@ -24,6 +26,12 @@ const cps = (callable, ...args) => ({
 
 const thunk = (callable, ...args) => ({
     type: 'thunk',
+    callable,
+    args
+});
+
+const coEffect = (callable, ...args) => ({
+    type: 'co',
     callable,
     args
 });
@@ -82,6 +90,10 @@ const handleThunkEffect = ({ callable, args }) => {
     });
 }
 
+const handleCoEffect = ({ callable, args }) => {
+    return co(callable(...args));
+}
+
 const handleEffect = (effect) => {
     switch(effect.type) {
     case 'call':
@@ -90,6 +102,8 @@ const handleEffect = (effect) => {
         return handleCpsEffect(effect);
     case 'thunk':
         return handleThunkEffect(effect);
+    case 'co':
+        return handleCoEffect(effect);
     default:
         throw new Error(`Unrecognized effect: ${effect}`);
     }
@@ -118,5 +132,7 @@ function sg(generator, ...args) {
 
 sg.call = call;
 sg.cps = cps;
+sg.thunk = thunk;
+sg.co = coEffect;
 
 module.exports = sg;

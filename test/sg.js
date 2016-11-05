@@ -20,7 +20,7 @@ describe('sg', function () {
             return yield sg.cps(substract, d, b);
         }
 
-        sg(compute(2, 3))
+        sg(compute)(2, 3)
         .then(result => {
             assert.equal(result, 7);
             done();

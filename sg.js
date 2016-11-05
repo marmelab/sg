@@ -1,15 +1,13 @@
-import co from 'co';
+const co = require('co');
 
-function isIterator(obj) {
-  return 'function' == typeof obj.next && 'function' == typeof obj.throw;
-}
-
-function isGenerator(obj) {
-    var constructor = obj.constructor;
+const isGenerator = (fn) => {
+    var constructor = fn.constructor;
     if (!constructor) return false;
-    if ('GeneratorFunction' === constructor.name || 'GeneratorFunction' === constructor.displayName) return true;
+    if (constructor.name === 'GeneratorFunction' || constructor.displayName === 'GeneratorFunction'){
+        return true;
+    }
 
-    return isIterator(constructor.prototype);
+    return false;
 }
 
 const call = (callable, ...args) => ({
@@ -35,17 +33,6 @@ const coEffect = (callable, ...args) => ({
     callable,
     args
 });
-
-const getIterator = (generator, ...args) => {
-    if (isIterator(generator)) {
-        return generator;
-    }
-    if (!isGenerator(generator)) {
-        throw new Error('sg expect either a generator or an iterator');
-    }
-
-    return generator(...args);
-};
 
 const handleCallEffect = ({ callable, args }) => {
     if(isGenerator(callable)) {
@@ -109,30 +96,35 @@ const handleEffect = (effect) => {
     }
 }
 
-function sg(generator, ...args) {
-    const iterator = getIterator(generator, ...args);
-    return new Promise((resolve, reject) => {
-        function loop(next) {
-            if(next.done) {
-                return resolve(next.value);
+function sg(generator) {
+    if (!isGenerator(generator)) {
+        throw new Error('sg need a generator function');
+    }
+    return (...args) => {
+        const iterator = generator(...args);
+        return new Promise((resolve, reject) => {
+            function loop(next) {
+                if(next.done) {
+                    return resolve(next.value);
+                }
+                const effect = next.value;
+                try {
+                    return handleEffect(effect)
+                    .then(result => loop(iterator.next(result)))
+                    .catch(error => loop(iterator.throw(error)));
+                } catch (error) {
+                    reject(error);
+                }
             }
-            const effect = next.value;
-            try {
-                return handleEffect(effect)
-                .then(result => loop(iterator.next(result)))
-                .catch(error => loop(iterator.throw(error)));
-            } catch (error) {
-                reject(error);
-            }
-        }
 
-        loop(iterator.next());
-    });
+            loop(iterator.next());
+        });
+    };
 }
 
 sg.call = call;
 sg.cps = cps;
 sg.thunk = thunk;
-sg.co = coEffect;
+sg.co = co;
 
 module.exports = sg;

@@ -1,14 +1,14 @@
 import co from 'co';
 
 const isGenerator = (fn) => {
-    var constructor = fn.constructor;
+    const constructor = fn.constructor;
     if (!constructor) return false;
-    if (constructor.name === 'GeneratorFunction' || constructor.displayName === 'GeneratorFunction'){
+    if (constructor.name === 'GeneratorFunction' || constructor.displayName === 'GeneratorFunction') {
         return true;
     }
 
     return false;
-}
+};
 
 const createEffect = (type, handle, handleCtx) => (callable, ...args) => ({
     type,
@@ -18,7 +18,7 @@ const createEffect = (type, handle, handleCtx) => (callable, ...args) => ({
 });
 
 const handleCallEffect = ({ callable, args }) => {
-    if(typeof callable !== 'function' || isGenerator(callable)) {
+    if (typeof callable !== 'function' || isGenerator(callable)) {
         throw new Error('Call effect take a function');
     }
     try {
@@ -26,12 +26,12 @@ const handleCallEffect = ({ callable, args }) => {
     } catch (error) {
         return Promise.reject(error);
     }
-}
+};
 
-const handleCpsEffect = ({ callable, args }) => {
-    return new Promise((resolve, reject) => {
+const handleCpsEffect = ({ callable, args }) =>
+    new Promise((resolve, reject) => {
         try {
-            callable(...args, (error, result) => {
+            return callable(...args, (error, result) => {
                 if (error) {
                     return reject(error);
                 }
@@ -42,13 +42,12 @@ const handleCpsEffect = ({ callable, args }) => {
             return reject(error);
         }
     });
-}
 
-const handleThunkEffect = ({ callable, args }) => {
-    return new Promise((resolve, reject) => {
+const handleThunkEffect = ({ callable, args }) =>
+    new Promise((resolve, reject) => {
         try {
-            callable(...args)((error, result) => {
-                if(error) {
+            return callable(...args)((error, result) => {
+                if (error) {
                     return reject(error);
                 }
 
@@ -58,15 +57,8 @@ const handleThunkEffect = ({ callable, args }) => {
             return reject(error);
         }
     });
-}
 
-const handleCoEffect = ({ callable, args }) => {
-    return co(callable(...args));
-}
-
-const handleEffect = (effect) => {
-    return effect.handle(effect);
-}
+const handleCoEffect = ({ callable, args }) => co(callable(...args));
 
 function sg(generator) {
     if (!isGenerator(generator)) {
@@ -76,7 +68,7 @@ function sg(generator) {
         const iterator = generator(...args);
         return new Promise((resolve, reject) => {
             function loop(next) {
-                if(next.done) {
+                if (next.done) {
                     return resolve(next.value);
                 }
                 const effect = next.value;
@@ -85,7 +77,7 @@ function sg(generator) {
                     .then(result => loop(iterator.next(result)))
                     .catch(error => loop(iterator.throw(error)));
                 } catch (error) {
-                    reject(error);
+                    return reject(error);
                 }
             }
 

@@ -1,5 +1,5 @@
-const assert = require('chai').assert;
-const sg = require('../sg');
+import { assert } from 'chai';
+import sg from '../sg';
 
 describe('sg', function () {
     it('should execute generator', function (done) {
@@ -27,6 +27,5 @@ describe('sg', function () {
         }).catch(error => {
             done(error);
         });
-
     });
 });

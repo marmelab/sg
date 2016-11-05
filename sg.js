@@ -1,4 +1,4 @@
-const co = require('co');
+import co from 'co';
 
 const isGenerator = (fn) => {
     var constructor = fn.constructor;
@@ -99,4 +99,4 @@ sg.cps = createEffect('cps', handleCpsEffect);
 sg.thunk = createEffect('thunk', handleThunkEffect);
 sg.co = createEffect('co', handleCoEffect);
 
-module.exports = sg;
+export default sg;

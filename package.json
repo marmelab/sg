@@ -4,11 +4,15 @@
   "description": "SG",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node_modules/mocha/bin/mocha ./test/"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "babel-plugin-transform-es2015-modules-commonjs": "6.16.0",
+    "babel-preset-stage-2": "6.17.0",
+    "babel-register": "6.16.3",
+    "babel-cli": "6.8.0",
     "chai": "^3.5.0",
     "mocha": "^3.1.2"
   },

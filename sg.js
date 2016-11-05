@@ -10,33 +10,16 @@ const isGenerator = (fn) => {
     return false;
 }
 
-const call = (callable, ...args) => ({
-    type: 'call',
+const createEffect = (type, handle, handleCtx) => (callable, ...args) => ({
+    type,
     callable,
     args,
-});
-
-const cps = (callable, ...args) => ({
-    type: 'cps',
-    callable,
-    args
-});
-
-const thunk = (callable, ...args) => ({
-    type: 'thunk',
-    callable,
-    args
-});
-
-const coEffect = (callable, ...args) => ({
-    type: 'co',
-    callable,
-    args
+    handle: handle.bind(handleCtx, { callable, args }),
 });
 
 const handleCallEffect = ({ callable, args }) => {
-    if(isGenerator(callable)) {
-        return sg(callable, ...args);
+    if(typeof callable !== 'function' || isGenerator(callable)) {
+        throw new Error('Call effect take a function');
     }
     try {
         return Promise.resolve(callable(...args));
@@ -82,18 +65,7 @@ const handleCoEffect = ({ callable, args }) => {
 }
 
 const handleEffect = (effect) => {
-    switch(effect.type) {
-    case 'call':
-        return handleCallEffect(effect);
-    case 'cps':
-        return handleCpsEffect(effect);
-    case 'thunk':
-        return handleThunkEffect(effect);
-    case 'co':
-        return handleCoEffect(effect);
-    default:
-        throw new Error(`Unrecognized effect: ${effect}`);
-    }
+    return effect.handle(effect);
 }
 
 function sg(generator) {
@@ -109,7 +81,7 @@ function sg(generator) {
                 }
                 const effect = next.value;
                 try {
-                    return handleEffect(effect)
+                    return effect.handle()
                     .then(result => loop(iterator.next(result)))
                     .catch(error => loop(iterator.throw(error)));
                 } catch (error) {
@@ -122,9 +94,9 @@ function sg(generator) {
     };
 }
 
-sg.call = call;
-sg.cps = cps;
-sg.thunk = thunk;
-sg.co = co;
+sg.call = createEffect('call', handleCallEffect);
+sg.cps = createEffect('cps', handleCpsEffect);
+sg.thunk = createEffect('thunk', handleThunkEffect);
+sg.co = createEffect('co', handleCoEffect);
 
 module.exports = sg;

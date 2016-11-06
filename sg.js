@@ -1,64 +1,8 @@
-import co from 'co';
-
-const isGenerator = (fn) => {
-    const constructor = fn.constructor;
-    if (!constructor) return false;
-    if (constructor.name === 'GeneratorFunction' || constructor.displayName === 'GeneratorFunction') {
-        return true;
-    }
-
-    return false;
-};
-
-const createEffect = (type, handle, handleCtx) => (callable, ...args) => ({
-    type,
-    callable,
-    args,
-    handle: handle.bind(handleCtx, { callable, args }),
-});
-
-const handleCallEffect = ({ callable, args }) => {
-    if (typeof callable !== 'function' || isGenerator(callable)) {
-        throw new Error('Call effect take a function');
-    }
-    try {
-        return Promise.resolve(callable(...args));
-    } catch (error) {
-        return Promise.reject(error);
-    }
-};
-
-const handleCpsEffect = ({ callable, args }) =>
-    new Promise((resolve, reject) => {
-        try {
-            return callable(...args, (error, result) => {
-                if (error) {
-                    return reject(error);
-                }
-
-                return resolve(result);
-            });
-        } catch (error) {
-            return reject(error);
-        }
-    });
-
-const handleThunkEffect = ({ callable, args }) =>
-    new Promise((resolve, reject) => {
-        try {
-            return callable(...args)((error, result) => {
-                if (error) {
-                    return reject(error);
-                }
-
-                return resolve(result);
-            });
-        } catch (error) {
-            return reject(error);
-        }
-    });
-
-const handleCoEffect = ({ callable, args }) => co(callable(...args));
+import isGenerator from './utils/isGenerator';
+import callEffect from './effects/call';
+import cpsEffect from './effects/cps';
+import thunkEffect from './effects/thunk';
+import coEffect from './effects/co';
 
 function sg(generator) {
     if (!isGenerator(generator)) {
@@ -86,9 +30,9 @@ function sg(generator) {
     };
 }
 
-sg.call = createEffect('call', handleCallEffect);
-sg.cps = createEffect('cps', handleCpsEffect);
-sg.thunk = createEffect('thunk', handleThunkEffect);
-sg.co = createEffect('co', handleCoEffect);
+sg.call = callEffect;
+sg.cps = cpsEffect;
+sg.thunk = thunkEffect;
+sg.co = coEffect;
 
 export default sg;

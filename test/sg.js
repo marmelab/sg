@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import sg from '../sg';
+import sg from '../src/sg';
 
 describe('sg', () => {
     it('should execute generator', (done) => {

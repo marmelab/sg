@@ -1,5 +1,5 @@
 {
-  "name": "sg",
+  "name": "sg.js",
   "version": "0.0.1",
   "description": "SG",
   "main": "src/dist/sg.js",

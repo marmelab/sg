@@ -30,4 +30,39 @@ describe('sg', () => {
             done(error);
         });
     });
+
+    it.only('should reject with error unhandled by generator', (done) => {
+        function boom() {
+            throw new Error('Boom');
+        }
+        function* bomb() {
+            yield sg.call(boom);
+        }
+
+        sg(bomb)()
+        .then(() => {
+            done(new Error('it should have thrown an error'));
+        })
+        .catch((error) => {
+            assert.equal(error.message, 'Boom');
+            done();
+        })
+        .catch(done);
+    });
+
+    it.only('should reject with error throw diractly by generator', (done) => {
+        function* bomb() {
+            throw new Error('Boom');
+        }
+
+        sg(bomb)()
+        .then(() => {
+            done(new Error('it should have thrown an error'));
+        })
+        .catch((error) => {
+            assert.equal(error.message, 'Boom');
+            done();
+        })
+        .catch(done);
+    });
 });

@@ -31,7 +31,7 @@ describe('sg', () => {
         });
     });
 
-    it.only('should reject with error unhandled by generator', (done) => {
+    it('should reject with error unhandled by generator', (done) => {
         function boom() {
             throw new Error('Boom');
         }
@@ -50,7 +50,7 @@ describe('sg', () => {
         .catch(done);
     });
 
-    it.only('should reject with error throw diractly by generator', (done) => {
+    it('should reject with error throw diractly by generator', (done) => {
         function* bomb() {
             throw new Error('Boom');
         }

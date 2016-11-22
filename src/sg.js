@@ -19,7 +19,8 @@ function sg(generator) {
                 try {
                     return effect.handle()
                     .then(result => loop(iterator.next(result)))
-                    .catch(error => loop(iterator.throw(error)));
+                    .catch(error => loop(iterator.throw(error)))
+                    .catch(error => reject(error));
                 } catch (error) {
                     return reject(error);
                 }

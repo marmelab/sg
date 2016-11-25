@@ -1,2 +1,105 @@
-SG
-==
+#SG
+Utility to handle side effects with generator. Inspired by redux-saga and co.
+
+##install
+`npm install`
+
+##Introduction
+The sg function take a generator yielding effect and return a function which return a promise.
+```js
+import sg from 'sg';
+function* gen(name) {
+    //...
+    yield sg.call(console.log, `hello ${name}`);
+
+    return 'done';
+}
+
+const func = sg(gen);
+
+func('world')
+.then((result) => {
+    console.log(result); // done
+});
+```
+
+An effect is an object which describe what to do.
+This allow to test the generator flow logic without having to worry about the effect.
+```js
+const iterator = gen('world');
+const { value } = iterator.next();
+// test value
+{
+    type: 'call',
+    callable: console.log,
+    args: ['hello world'],
+    handler: //callHandler
+}
+```
+
+##effects
+The effects are helper who return object describing what to do.
+
+###call
+Call a function (normal, async or returning a promise) or a generator yielding effect and either return the value or throw an error
+```js
+const add = (a, b) => a + b;
+const addPromise = (a, b) => new Promise((resolve, reject) => {
+    try {
+        resolve(a + b);
+    } catch (error) {
+        reject(error);
+    }
+})
+const addAsync = async (a, b) => await Promise.resolve(a + b);
+function* addGenerator(a, b) {
+    const c = yield sg.call(add, a, b);
+    const d = yield sg.call(addPromise, a, c);
+    return yield sg.call(addAsync, b, d);
+}
+```
+
+###thunk
+Call a thunk function and either return the value or throw an error
+A thunk function is a function that return an asynchronous function taking a callback
+```js
+const add = (a, b) => cb => cb(null, a + b);
+```
+
+###co
+Call a co style generator (yielding promise or thunk, not effect)
+```js
+function* add(a, b) {
+    return yield Promise.resolve(a + b);
+}
+```
+
+###cps
+Call a continuation passing style function
+```js
+const add = (a, b, cb) => cb(null, a + b);
+```
+
+### coming soon
+ - fork (same as call but will not wait for the result returning the promise instead)
+ - put (emit an event)
+ - take (wait for an event)
+ - takeEvery (execute given generator for each matching event)
+
+###Adding your own custom effects with createEffect
+You can create your own effect with createEffect
+It take a type and an handler and an optional context.
+Type: string with the effect name
+Handler: a function that will be called with the effect parameter and must return a promise or be async.
+Context: the context(this value) with which the handler will be called. (context will have no effect with arrow function)
+Example of custom effect:
+```js
+import { createEffect } from 'sg.js';
+const sqlEffect = createEffect('sql', function (sql, parameter) {
+    return executeQueryAndReturnAPromise(sql, parameter);
+});
+
+ds(function* (userData) {
+    yield sqlEffect('INSERT ... INTO user', userData);
+})({ name: 'john' });
+```

@@ -65,4 +65,25 @@ describe('sg', () => {
         })
         .catch(done);
     });
+
+    it('should handle array of effect', (done) => {
+        const add = (a, b) => a + b;
+        const multiply = (a, b) => Promise.resolve(a * b);
+        const substract = (a, b, cb) => cb(null, a - b);
+        function* compute(a, b) {
+            return yield [
+                sg.call(add, a, b),
+                sg.call(multiply, a, b),
+                sg.cps(substract, a, b),
+            ];
+        }
+
+        sg(compute)(2, 3)
+        .then((result) => {
+            assert.deepEqual(result, [5, 6, -1]);
+            done();
+        }).catch((error) => {
+            done(error);
+        });
+    });
 });

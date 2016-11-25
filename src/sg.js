@@ -4,6 +4,13 @@ import cpsEffect from './effects/cps';
 import thunkEffect from './effects/thunk';
 import coEffect from './effects/co';
 
+const handleEffect = (effect) => {
+    if (Array.isArray(effect)) {
+        return Promise.all(effect.map(e => e.handle()));
+    }
+    return effect.handle();
+};
+
 function sg(generator) {
     if (!isGenerator(generator)) {
         throw new Error('sg need a generator function');
@@ -12,12 +19,13 @@ function sg(generator) {
         const iterator = generator(...args);
         return new Promise((resolve, reject) => {
             function loop(next) {
-                if (next.done) {
-                    return resolve(next.value);
-                }
-                const effect = next.value;
                 try {
-                    return effect.handle()
+                    if (next.done) {
+                        return resolve(next.value);
+                    }
+                    const effect = next.value;
+
+                    return handleEffect(effect)
                     .then(result => loop(iterator.next(result)))
                     .catch(error => loop(iterator.throw(error)))
                     .catch(error => reject(error));

@@ -1,5 +1,5 @@
 #SG
-Utility to handle side effects with generator. Inspired by [redux-saga](https://github.com/yelouafi/redux-saga) and [co](https://github.com/tj/co).
+Utility to handle side effects with generators. Inspired by [redux-saga](https://github.com/yelouafi/redux-saga) and [co](https://github.com/tj/co).
 
 ##install
 `npm install`
@@ -24,7 +24,7 @@ func('world')
 ```
 
 ##effects
-The effects are helper who return object describing what to do.
+The effects are helper which return object describing what to do.
 
 ```js
 const effect = call(console.log, 'hello world');

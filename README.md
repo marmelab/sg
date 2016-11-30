@@ -24,7 +24,7 @@ func('world')
 ```
 
 ##effects
-The effects are helper functions which return object describing what to do.
+The effects are helper functions which return an object describing what to do.
 
 ```js
 const effect = call(console.log, 'hello world');

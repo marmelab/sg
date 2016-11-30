@@ -5,7 +5,7 @@ Utility to handle side effects with generators. Inspired by [redux-saga](https:/
 `npm install`
 
 ##Introduction
-The sg function take a generator yielding effect and return a function which return a promise.
+The sg function takes a generator yielding effect and returns a function which return a promise.
 ```js
 import sg from 'sg';
 function* gen(name) {
@@ -37,7 +37,7 @@ const effect = call(console.log, 'hello world');
 ```
 
 ###call
-Call a function (normal, async or returning a promise) or a generator yielding effect and either return the value or throw an error
+Calls a function (normal, async or returning a promise) or a generator yielding effect and either returns the value or throws an error.
 ```js
 const add = (a, b) => a + b;
 const addPromise = (a, b) => new Promise((resolve, reject) => {
@@ -56,14 +56,14 @@ function* addGenerator(a, b) {
 ```
 
 ###thunk
-Call a thunk function and either return the value or throw an error
-A thunk function is a function that return an asynchronous function taking a callback
+Calls a thunk function and either returns the value or throws an error.
+A thunk function is a function that returns an asynchronous function taking a callback.
 ```js
 const add = (a, b) => cb => cb(null, a + b);
 ```
 
 ###co
-Call a co style generator (yielding promise or thunk, not effect)
+Calls a co style generator (yielding promise or thunk, not effect).
 ```js
 function* add(a, b) {
     return yield Promise.resolve(a + b);
@@ -71,7 +71,7 @@ function* add(a, b) {
 ```
 
 ###cps
-Call a continuation passing style function
+Calls a continuation passing style function.
 ```js
 const add = (a, b, cb) => cb(null, a + b);
 ```
@@ -83,10 +83,10 @@ const add = (a, b, cb) => cb(null, a + b);
  - takeEvery (execute given generator for each matching event)
 
 ###Adding your own custom effects with createEffect
-You can create your own effect with createEffect
-It take a type, an handler and an optional context.
+You can create your own effect with createEffect.
+It takes a type, an handler and an optional context.
 Type: string with the effect name
-Handler: a function that will be called with the effect parameter and must return a promise or be async.
+Handler: a function that will be called with the effect parameter and must returns a promise or be async.
 Context: the context(this value) with which the handler will be called. (context will have no effect with arrow function)
 Example of custom effect:
 ```js

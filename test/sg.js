@@ -88,7 +88,7 @@ describe('sg', () => {
     });
 
     describe('handleEffect', () => {
-        it('should call effect.handle with effect.args', () => {
+        it('should call effect.handle with effect.args and second argument emitter', () => {
             let handleCall;
             const handle = (...args) => {
                 handleCall = args;
@@ -98,9 +98,9 @@ describe('sg', () => {
                 args: ['arg1', 'arg2'],
             };
 
-            handleEffect(effect);
+            handleEffect(effect, 'emitter');
 
-            expect(handleCall).toEqual([['arg1', 'arg2']]);
+            expect(handleCall).toEqual([['arg1', 'arg2'], 'emitter']);
         });
     });
 });

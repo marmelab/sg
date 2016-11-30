@@ -4,16 +4,17 @@ import cpsEffect from './effects/cps';
 import thunkEffect from './effects/thunk';
 import coEffect from './effects/co';
 import createEffect from './effects/createEffect';
+import SgEmitter from './utils/SgEmitter';
 
-export const handleEffect = (effect) => {
+export const handleEffect = (effect, emitter) => {
     if (Array.isArray(effect)) {
-        return Promise.all(effect.map(e => e.handle(e.args)));
+        return Promise.all(effect.map(e => e.handle(e.args, emitter)));
     }
 
-    return effect.handle(effect.args);
+    return effect.handle(effect.args, emitter);
 };
 
-function sg(generator) {
+function sg(generator, emitter = new SgEmitter()) {
     if (!isGenerator(generator)) {
         throw new Error('sg need a generator function');
     }
@@ -27,7 +28,7 @@ function sg(generator) {
                     }
                     const effect = next.value;
 
-                    return handleEffect(effect)
+                    return handleEffect(effect, emitter)
                     .then(result => loop(iterator.next(result)))
                     .catch(error => loop(iterator.throw(error)))
                     .catch(error => reject(error));

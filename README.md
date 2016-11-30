@@ -23,22 +23,18 @@ func('world')
 });
 ```
 
-An effect is an object which describe what to do.
-This allow to test the generator flow logic without having to worry about the effect.
-```js
-const iterator = gen('world');
-const { value } = iterator.next();
-// test value
-{
-    type: 'call',
-    callable: console.log,
-    args: ['hello world'],
-    handler: //callHandler
-}
-```
-
 ##effects
 The effects are helper who return object describing what to do.
+
+```js
+const effect = call(console.log, 'hello world');
+// effect:
+{
+    type: 'call',
+    handler: // function that will execute the effect: called with arg, and returning a promise
+    args: [console.log, 'hello world'], // args passed to the effect function
+}
+```
 
 ###call
 Call a function (normal, async or returning a promise) or a generator yielding effect and either return the value or throw an error

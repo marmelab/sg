@@ -1,7 +1,7 @@
 import assertIsFunction from '../utils/assertIsFunction';
 import createEffect from './createEffect';
 
-export const handleCpsEffect = (callable, ...args) => {
+export const handleCpsEffect = ([callable, ...args]) => {
     assertIsFunction(callable);
     return new Promise((resolve, reject) => {
         try {

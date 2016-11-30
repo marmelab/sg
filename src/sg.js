@@ -5,11 +5,12 @@ import thunkEffect from './effects/thunk';
 import coEffect from './effects/co';
 import createEffect from './effects/createEffect';
 
-const handleEffect = (effect) => {
+export const handleEffect = (effect) => {
     if (Array.isArray(effect)) {
-        return Promise.all(effect.map(e => e.handle()));
+        return Promise.all(effect.map(e => e.handle(e.args)));
     }
-    return effect.handle();
+
+    return effect.handle(effect.args);
 };
 
 function sg(generator) {

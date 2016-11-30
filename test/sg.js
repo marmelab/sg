@@ -1,5 +1,5 @@
-import { assert } from 'chai';
-import sg from '../src/sg';
+import expect from 'expect';
+import sg, { handleEffect } from '../src/sg';
 
 describe('sg', () => {
     it('should execute generator', (done) => {
@@ -24,7 +24,7 @@ describe('sg', () => {
 
         sg(compute)(2, 3)
         .then((result) => {
-            assert.equal(result, 7);
+            expect(result).toBe(7);
             done();
         }).catch((error) => {
             done(error);
@@ -44,7 +44,7 @@ describe('sg', () => {
             done(new Error('it should have thrown an error'));
         })
         .catch((error) => {
-            assert.equal(error.message, 'Boom');
+            expect(error.message).toBe('Boom');
             done();
         })
         .catch(done);
@@ -60,7 +60,7 @@ describe('sg', () => {
             done(new Error('it should have thrown an error'));
         })
         .catch((error) => {
-            assert.equal(error.message, 'Boom');
+            expect(error.message).toBe('Boom');
             done();
         })
         .catch(done);
@@ -80,10 +80,27 @@ describe('sg', () => {
 
         sg(compute)(2, 3)
         .then((result) => {
-            assert.deepEqual(result, [5, 6, -1]);
+            expect(result).toEqual([5, 6, -1]);
             done();
         }).catch((error) => {
             done(error);
+        });
+    });
+
+    describe('handleEffect', () => {
+        it('should call effect.handle with effect.args', () => {
+            let handleCall;
+            const handle = (...args) => {
+                handleCall = args;
+            };
+            const effect = {
+                handle,
+                args: ['arg1', 'arg2'],
+            };
+
+            handleEffect(effect);
+
+            expect(handleCall).toEqual([['arg1', 'arg2']]);
         });
     });
 });

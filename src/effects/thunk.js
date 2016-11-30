@@ -1,7 +1,7 @@
 import assertIsFunction from '../utils/assertIsFunction';
 import createEffect from './createEffect';
 
-export const handleThunkEffect = (callable, ...args) => {
+export const handleThunkEffect = ([callable, ...args]) => {
     assertIsFunction(callable);
 
     return new Promise((resolve, reject) => {

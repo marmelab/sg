@@ -1,5 +1,5 @@
 #SG
-Utility to handle side effects with generator. Inspired by redux-saga and co.
+Utility to handle side effects with generator. Inspired by [redux-saga](https://github.com/yelouafi/redux-saga) and [co](https://github.com/tj/co).
 
 ##install
 `npm install`

@@ -24,7 +24,7 @@ func('world')
 ```
 
 ##effects
-The effects are helper which return object describing what to do.
+The effects are helper who return object describing what to do.
 
 ```js
 const effect = call(console.log, 'hello world');
@@ -84,7 +84,7 @@ const add = (a, b, cb) => cb(null, a + b);
 
 ###Adding your own custom effects with createEffect
 You can create your own effect with createEffect
-It take a type and an handler and an optional context.
+It take a type, an handler and an optional context.
 Type: string with the effect name
 Handler: a function that will be called with the effect parameter and must return a promise or be async.
 Context: the context(this value) with which the handler will be called. (context will have no effect with arrow function)

@@ -10,14 +10,13 @@ describe('createEffect', () => {
         const effect = createEffect('type', handle, ctx);
         function callable() {}
         const effectDescriptor = effect(callable, 'arg1', 'arg2');
-        expect(effectDescriptor.callable).toEqual(callable);
-        expect(effectDescriptor.args).toEqual(['arg1', 'arg2']);
+        expect(effectDescriptor.args).toEqual([callable, 'arg1', 'arg2']);
         effectDescriptor.handle('something else');
         expect(effectDescriptor.handle).toEqual(handle.bind());
     });
 
     describe('effectDescriptor.handle', () => {
-        it('should be handle function bound as to receive { callable, args} as first argument', () => {
+        it('should be handle function bound as to receive effect args as first arguments', () => {
             let handleCall;
             function handle(...args) {
                 handleCall = args;
@@ -26,13 +25,10 @@ describe('createEffect', () => {
             function callable() {}
             const effectDescriptor = effect(callable, 'arg1', 'arg2');
             effectDescriptor.handle('something else');
-            expect(handleCall).toEqual([{
-                callable,
-                args: ['arg1', 'arg2'],
-            }, 'something else']);
+            expect(handleCall).toEqual([callable, 'arg1', 'arg2', 'something else']);
         });
 
-        it('should be handle function bound with given context if any', () => {
+        it('should have handle function bound with given context if any', () => {
             let handleCtx;
             function handle() {
                 handleCtx = this;

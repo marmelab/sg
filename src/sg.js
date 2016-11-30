@@ -3,6 +3,7 @@ import callEffect from './effects/call';
 import cpsEffect from './effects/cps';
 import thunkEffect from './effects/thunk';
 import coEffect from './effects/co';
+import createEffect from './effects/createEffect';
 
 const handleEffect = (effect) => {
     if (Array.isArray(effect)) {
@@ -43,5 +44,6 @@ sg.call = callEffect;
 sg.cps = cpsEffect;
 sg.thunk = thunkEffect;
 sg.co = coEffect;
+sg.createEffect = createEffect;
 
 export default sg;

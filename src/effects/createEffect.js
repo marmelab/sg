@@ -1,7 +1,6 @@
 
-export default (type, handle, handleCtx) => (callable, ...args) => ({
+export default (type, handle, handleCtx) => (...args) => ({
     type,
-    callable,
     args,
-    handle: handle.bind(handleCtx, { callable, args }),
+    handle: handle.bind(handleCtx, ...args),
 });

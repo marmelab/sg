@@ -9,7 +9,7 @@ describe('handleCoEffect', () => {
             return yield Promise.resolve();
         };
         const args = [1, 2, 3];
-        handleCoEffect({ callable, args });
+        handleCoEffect(callable, ...args);
 
         expect(callableCall).toEqual(args);
     });
@@ -18,7 +18,7 @@ describe('handleCoEffect', () => {
         const callable = function* () {
             return yield Promise.resolve('callable result');
         };
-        const promise = handleCoEffect({ callable });
+        const promise = handleCoEffect(callable);
 
         expect(promise).toBeA(Promise);
         promise.then((result) => {
@@ -32,7 +32,7 @@ describe('handleCoEffect', () => {
         const callable = function* () {
             yield Promise.reject(new Error('callable error'));
         };
-        const promise = handleCoEffect({ callable });
+        const promise = handleCoEffect(callable);
 
         expect(promise).toBeA(Promise);
         promise.then(() => {
@@ -46,7 +46,7 @@ describe('handleCoEffect', () => {
     });
 
     it('should throw an error if receiving a callable that is not a generator', () => {
-        expect(() => handleCoEffect({ callable: () => {} }))
+        expect(() => handleCoEffect(() => {}))
         .toThrow('coEfffect need a generator got function');
     });
 });

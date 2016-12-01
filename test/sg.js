@@ -50,7 +50,7 @@ describe('sg', () => {
         .catch(done);
     });
 
-    it('should reject with error throw diractly by generator', (done) => {
+    it('should reject with error throw directly by generator', (done) => {
         function* bomb() {
             throw new Error('Boom');
         }

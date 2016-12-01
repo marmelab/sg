@@ -76,6 +76,18 @@ Calls a continuation passing style function.
 const add = (a, b, cb) => cb(null, a + b);
 ```
 
+### put
+emit an event
+```js
+yield put('my event', { payload: data });
+```
+
+### take
+Wait for event sent by put and return its payload
+```js
+const payload = yield take('my event'); // { payload: data }
+```
+
 ### coming soon
  - fork (same as call but will not wait for the result returning the promise instead)
  - put (emit an event)

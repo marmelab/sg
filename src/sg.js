@@ -3,6 +3,8 @@ import callEffect from './effects/call';
 import cpsEffect from './effects/cps';
 import thunkEffect from './effects/thunk';
 import coEffect from './effects/co';
+import takeEffect from './effects/take';
+import putEffect from './effects/put';
 import createEffect from './effects/createEffect';
 import SgEmitter from './utils/SgEmitter';
 
@@ -46,6 +48,8 @@ sg.call = callEffect;
 sg.cps = cpsEffect;
 sg.thunk = thunkEffect;
 sg.co = coEffect;
+sg.take = takeEffect;
+sg.put = putEffect;
 sg.createEffect = createEffect;
 
 export default sg;

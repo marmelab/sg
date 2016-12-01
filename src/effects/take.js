@@ -9,4 +9,4 @@ export const handleTakeEffect = ([type], emitter) =>
         }
     });
 
-export default createEffect('put', handleTakeEffect);
+export default createEffect('take', handleTakeEffect);

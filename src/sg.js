@@ -5,6 +5,7 @@ import thunkEffect from './effects/thunk';
 import coEffect from './effects/co';
 import takeEffect from './effects/take';
 import putEffect from './effects/put';
+import spawnEffect from './effects/spawn';
 import createEffect from './effects/createEffect';
 import SgEmitter from './utils/SgEmitter';
 
@@ -50,6 +51,7 @@ sg.thunk = thunkEffect;
 sg.co = coEffect;
 sg.take = takeEffect;
 sg.put = putEffect;
+sg.spawn = spawnEffect;
 sg.createEffect = createEffect;
 
 export default sg;

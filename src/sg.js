@@ -24,6 +24,7 @@ function sg(generator, emitter = new SgEmitter()) {
     return (...args) => {
         const iterator = generator(...args);
         return new Promise((resolve, reject) => {
+            emitter.on('error', reject);
             function loop(next) {
                 try {
                     if (next.done) {
@@ -34,7 +35,7 @@ function sg(generator, emitter = new SgEmitter()) {
                     return handleEffect(effect, emitter)
                     .then(result => loop(iterator.next(result)))
                     .catch(error => loop(iterator.throw(error)))
-                    .catch(error => reject(error));
+                    .catch(error => emitter.emit('error', error));
                 } catch (error) {
                     return reject(error);
                 }

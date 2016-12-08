@@ -6,8 +6,9 @@ import { handleTakeEffect } from './take';
 describe('handleTakeEffect', () => {
     it('should call emitter.once with type and listener calling resolve with received payload', (done) => {
         const emitter = new SgEmitter();
+        const parentEmitter = new SgEmitter();
 
-        const promise = handleTakeEffect(['event'], emitter);
+        const promise = handleTakeEffect(['event'], parentEmitter, emitter);
 
         emitter.emit('event', 'payload');
 

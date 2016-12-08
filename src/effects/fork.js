@@ -1,12 +1,9 @@
 import sg from '../sg';
 import createEffect from './createEffect';
-import isGenerator from '../utils/isGenerator';
 
-export const handleForkEffect = sgImpl => ([callable, ...args], emitter) => {
-    if (isGenerator(callable)) {
-        throw new Error('fork effect need a Generator');
-    }
+export const handleForkEffect = sgImpl => ([callable, ...args], parentEmitter, emitter) => {
     const promise = sgImpl(callable, emitter)(...args);
+    emitter.emit('fork', promise);
 
     return Promise.resolve(() => promise);
 };

@@ -76,10 +76,33 @@ Calls a continuation passing style function.
 const add = (a, b, cb) => cb(null, a + b);
 ```
 
+### put
+emit an event
+```js
+yield put('my event', { payload: data });
+```
+
+### take
+Wait for event sent by put and return its payload
+```js
+const payload = yield take('my event'); // { payload: data }
+```
+
+### spawn
+Launch another sg generator, but do not wait for it to end, returning a function that will resolve when the generator is done instead.
+```js
+const done = yield spawn(sgGenerator);
+yield done(); //resolve when spawned task resolve
+```
+
+### fork
+Same as spawn, but error from the forked genearator will bubble up to the parent generator making him fail. Also the parent generator will wait for the forked generator to end before resolving.
+```js
+const done = yield fork(sgGenerator);
+yield done(); //resolve when spawned task resolve
+```
+
 ### coming soon
- - fork (same as call but will not wait for the result returning the promise instead)
- - put (emit an event)
- - take (wait for an event)
  - takeEvery (execute given generator for each matching event)
 
 ###Adding your own custom effects with createEffect

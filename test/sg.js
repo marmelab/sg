@@ -1,5 +1,10 @@
 import expect from 'expect';
+
 import sg, { handleEffect } from '../src/sg';
+import call from '../src/effects/call';
+import fork from '../src/effects/fork';
+import put from '../src/effects/put';
+import take from '../src/effects/take';
 
 describe('sg', () => {
     it('should execute generator', (done) => {
@@ -50,7 +55,7 @@ describe('sg', () => {
         .catch(done);
     });
 
-    it('should reject with error throw diractly by generator', (done) => {
+    it('should reject with error throw directly by generator', (done) => {
         function* bomb() {
             throw new Error('Boom');
         }
@@ -98,9 +103,57 @@ describe('sg', () => {
                 args: ['arg1', 'arg2'],
             };
 
-            handleEffect(effect, 'emitter');
+            handleEffect(effect, 'parentEmitter', 'emitter');
 
-            expect(handleCall).toEqual([['arg1', 'arg2'], 'emitter']);
+            expect(handleCall).toEqual([['arg1', 'arg2'], 'parentEmitter', 'emitter']);
+        });
+    });
+
+    describe('put take fork', () => {
+        it('should reject with error thrown in forked generator', (done) => {
+            function* sub() {
+                throw new Error('sub Boom');
+            }
+            function* main() {
+                try {
+                    yield fork(sub);
+                } catch (error) {
+                    throw new Error(`I caught ${error.message}`);
+                }
+            }
+            sg(main)()
+            .then(() => {
+                done(new Error('main should have been rejected with error from forked sub'));
+            })
+            .catch((error) => {
+                expect(error.message).toBe('sub Boom');
+                done();
+            })
+            .catch(done);
+        });
+
+        it('should be able to communicate between forked saga with put and take', (done) => {
+            let payload;
+            function* fork1() {
+                yield put('from_fork1', 'fork1_payload');
+            }
+
+            function* fork2() {
+                payload = yield take('from_fork1');
+            }
+
+            function* main() {
+                yield fork(fork2);
+                yield fork(fork1);
+            }
+
+            sg(main)()
+            .then((result) => {
+                expect(result).toBe(undefined);
+                expect(payload).toBe('fork1_payload');
+                done();
+            })
+            .catch(done);
         });
     });
 });

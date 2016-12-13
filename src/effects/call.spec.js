@@ -8,14 +8,14 @@ describe('handleCallEffect', () => {
             callableCall = args;
         };
         const args = [1, 2, 3];
-        handleCallEffect(callable, ...args);
+        handleCallEffect([callable, ...args]);
 
         expect(callableCall).toEqual(args);
     });
 
     it('should return a promise resolving with callable() result', (done) => {
         const callable = () => 'callable result';
-        const promise = handleCallEffect(callable);
+        const promise = handleCallEffect([callable]);
 
         expect(promise).toBeA(Promise);
         promise.then((result) => {
@@ -29,7 +29,7 @@ describe('handleCallEffect', () => {
         const callable = () => {
             throw new Error('callable error');
         };
-        const promise = handleCallEffect(callable);
+        const promise = handleCallEffect([callable]);
 
         expect(promise).toBeA(Promise);
         promise.then(() => {
@@ -50,7 +50,7 @@ describe('handleCallEffect', () => {
             return 'callable result';
         };
         const args = [1, 2, 3];
-        const promise = handleCallEffect(callable, ...args);
+        const promise = handleCallEffect([callable, ...args]);
 
         expect(callableCall).toEqual(args);
 
@@ -63,14 +63,14 @@ describe('handleCallEffect', () => {
     });
 
     it('should throw an error if receiving a callable that is not a function', () => {
-        expect(() => handleCallEffect('not a function'))
+        expect(() => handleCallEffect(['not a function']))
         .toThrow('Expected string to be callable');
     });
 
     it('should convert generator callable to promise using sg', (done) => {
-        const promise = handleCallEffect(function* callable() {
+        const promise = handleCallEffect([function* callable() {
             return yield call(() => 'callable result');
-        });
+        }]);
         expect(promise).toBeA(Promise);
         promise.then((result) => {
             expect(result).toBe('callable result');

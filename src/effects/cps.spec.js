@@ -8,14 +8,14 @@ describe('handleCpsEffect', () => {
             callableCall = args.slice(0, -1);
         };
         const args = [1, 2, 3];
-        handleCpsEffect(callable, ...args);
+        handleCpsEffect([callable, ...args]);
 
         expect(callableCall).toEqual(args);
     });
 
     it('should return a promise resolving with callable(...args, `cb`) second argument', (done) => {
         const callable = (...args) => args.slice(-1)[0](null, 'callable result');
-        const promise = handleCpsEffect(callable);
+        const promise = handleCpsEffect([callable]);
 
         expect(promise).toBeA(Promise);
         promise.then((result) => {
@@ -27,7 +27,7 @@ describe('handleCpsEffect', () => {
 
     it('should return a promise rejecting with callable(...args, `cb`) first argument if any', (done) => {
         const callable = (...args) => args.slice(-1)[0](new Error('callable error'));
-        const promise = handleCpsEffect(callable);
+        const promise = handleCpsEffect([callable]);
 
         expect(promise).toBeA(Promise);
         promise.then(() => {
@@ -41,12 +41,12 @@ describe('handleCpsEffect', () => {
     });
 
     it('should throw an error if receiving a callable that is not a function', () => {
-        expect(() => handleCpsEffect('callable'))
+        expect(() => handleCpsEffect(['callable']))
         .toThrow('Expected string to be a function');
     });
 
     it('should throw an error if receiving a callable that is a generator function', () => {
-        expect(() => handleCpsEffect(function* callable() { return yield Promise.resolve(); }))
+        expect(() => handleCpsEffect([function* callable() { return yield Promise.resolve(); }]))
         .toThrow('Expected generator function to be a function');
     });
 });

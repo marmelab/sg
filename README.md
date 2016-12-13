@@ -89,7 +89,7 @@ const payload = yield take('my event'); // { payload: data }
 ```
 
 ### spawn
-Launch another sg generator, but do not wait for it to end. Returning a function that will resolve when the generator is done instead.
+Launch another sg generator, but do not wait for it to end, returning a function that will resolve when the generator is done instead.
 ```js
 const done = yield spawn(sgGenerator);
 yield done(); //resolve when spawned task resolve

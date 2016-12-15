@@ -1,12 +1,9 @@
 import createEffect from './createEffect';
 
-export const handleTakeEffect = ([type], parentEmitter, emitter) =>
+export const handleTakeEffect = ([type], emitter) =>
     new Promise((resolve, reject) => {
         try {
             emitter.once(type, payload => resolve(payload));
-            if (parentEmitter) {
-                parentEmitter.once(type, payload => resolve(payload));
-            }
         } catch (error) {
             reject(error);
         }

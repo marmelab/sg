@@ -12,7 +12,7 @@ describe('handleSpawnEffect', () => {
 
     it('should call sgImpl with received arg', () => {
         handleSpawnEffect(sgImpl)(['arg1_1', 'arg1_2', 'arg1_3'], 'emitter');
-        expect(sgImpl).toHaveBeenCalledWith('arg1_1');
+        expect(sgImpl).toHaveBeenCalledWith('arg1_1', 'emitter');
         expect(sgResultFn).toHaveBeenCalledWith('arg1_2', 'arg1_3');
     });
 

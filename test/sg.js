@@ -5,6 +5,7 @@ import call from '../src/effects/call';
 import fork from '../src/effects/fork';
 import put from '../src/effects/put';
 import take from '../src/effects/take';
+import takeEvery from '../src/effects/takeEvery';
 
 describe('sg', () => {
     it('should execute generator', (done) => {
@@ -201,6 +202,30 @@ describe('sg', () => {
                 expect(error.message).toBe('Boom from fork2');
                 done();
             });
+        });
+    });
+
+    describe('takeEvery', () => {
+        // @TODO: use future cancel effect to cancel takeEvery task
+        it.skip('should call given generator on each taken effect', (done) => {
+            const genCall = [];
+            function* gen(...args) {
+                genCall.push(args);
+            }
+
+            sg(function* () {
+                yield takeEvery('event', gen, 'arg1', 'arg2');
+                yield put('event', 'first');
+                yield put('event', 'second');
+            })()
+            .then(() => {
+                expect(genCall).toEqual([
+                    ['arg1', 'arg2', 'first'],
+                    ['arg1', 'arg2', 'second'],
+                ]);
+                done();
+            })
+            .catch(done);
         });
     });
 });

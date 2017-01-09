@@ -17,7 +17,7 @@ describe('sg', () => {
         function* compute(a, b) {
             const c = yield sg.call(add, a, b);
             try {
-                yield sg.call(boom);
+                yield call(boom);
             } catch (error) {
                 console.log(error);
             }
@@ -154,6 +154,53 @@ describe('sg', () => {
                 done();
             })
             .catch(done);
+        });
+
+        it('should be able to communicate with deeply nested saga', (done) => {
+            let payload;
+            function* fork2() {
+                yield put('from_fork2', 'fork2_payload');
+            }
+
+            function* fork1() {
+                yield fork(fork2);
+            }
+
+            function* main() {
+                yield fork(fork1);
+                payload = yield take('from_fork2');
+            }
+
+            sg(main)()
+            .then((result) => {
+                expect(result).toBe(undefined);
+                expect(payload).toBe('fork2_payload');
+                done();
+            })
+            .catch(done);
+        });
+
+        it('should be able to propagate error form deeply nested saga', (done) => {
+            function* fork2() {
+                throw new Error('Boom from fork2');
+            }
+
+            function* fork1() {
+                yield fork(fork2);
+            }
+
+            function* main() {
+                yield fork(fork1);
+            }
+
+            sg(main)()
+            .then(() => {
+                done(new Error('sg should have been rejected'));
+            })
+            .catch((error) => {
+                expect(error.message).toBe('Boom from fork2');
+                done();
+            });
         });
     });
 });

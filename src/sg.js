@@ -1,3 +1,5 @@
+import uuid from 'uuid';
+
 import isGenerator from './utils/isGenerator';
 import callEffect from './effects/call';
 import cpsEffect from './effects/cps';
@@ -9,23 +11,24 @@ import spawnEffect from './effects/spawn';
 import createEffect from './effects/createEffect';
 import SgEmitter from './utils/SgEmitter';
 
-export const handleEffect = (effect, parentEmitter, emitter) => {
+export const handleEffect = (effect, emitter, id) => {
     if (Array.isArray(effect)) {
-        return Promise.all(effect.map(e => e.handle(e.args, parentEmitter, emitter)));
+        return Promise.all(effect.map(e => e.handle(e.args, emitter, id)));
     }
 
-    return effect.handle(effect.args, parentEmitter, emitter);
+    return effect.handle(effect.args, emitter, id);
 };
 
-function sg(generator, parentEmitter, emitter = new SgEmitter()) {
+function sg(generator, emitter = new SgEmitter(), parentId = null) {
+    const id = uuid();
     if (!isGenerator(generator)) {
         throw new Error('sg need a generator function');
     }
     return (...args) => new Promise((resolve, reject) => {
         const forkedPromises = [];
 
-        emitter.on('error', reject);
-        emitter.on('fork', promise => forkedPromises.push(promise));
+        emitter.on(`error_${id}`, reject);
+        emitter.on(`fork_${id}`, promise => forkedPromises.push(promise));
 
         setTimeout(() => {
             const iterator = generator(...args);
@@ -39,14 +42,15 @@ function sg(generator, parentEmitter, emitter = new SgEmitter()) {
                     }
                     const effect = next.value;
 
-                    return handleEffect(effect, parentEmitter, emitter)
+                    return handleEffect(effect, emitter, id)
                     .then(result => loop(iterator.next(result)))
                     .catch(error => loop(iterator.throw(error)))
                     .catch((error) => {
                         console.log({ error });
-                        if (parentEmitter) {
-                            parentEmitter.emit('error', error);
+                        if (parentId) {
+                            emitter.emit(`error_${parentId}`, error);
                         }
+
                         reject(error);
                     });
                 } catch (error) {

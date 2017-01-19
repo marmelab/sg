@@ -1,12 +1,6 @@
 import createEffect from './createEffect';
 
-export const handleTakeEffect = ([type], emitter) =>
-    new Promise((resolve, reject) => {
-        try {
-            emitter.once(type, payload => resolve(payload));
-        } catch (error) {
-            reject(error);
-        }
-    });
+export const handleTakeEffect = ([type], emitter, id) =>
+    emitter.take(id, type);
 
 export default createEffect('take', handleTakeEffect);

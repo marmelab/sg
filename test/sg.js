@@ -6,6 +6,7 @@ import fork from '../src/effects/fork';
 import put from '../src/effects/put';
 import take from '../src/effects/take';
 import takeEvery from '../src/effects/takeEvery';
+import cancel from '../src/effects/cancel';
 
 describe('sg', () => {
     it('should execute generator', (done) => {
@@ -206,17 +207,17 @@ describe('sg', () => {
     });
 
     describe('takeEvery', () => {
-        // @TODO: use future cancel effect to cancel takeEvery task
-        it.skip('should call given generator on each taken effect', (done) => {
+        it('should call given generator on each taken effect', (done) => {
             const genCall = [];
             function* gen(...args) {
                 genCall.push(args);
             }
 
             sg(function* () {
-                yield takeEvery('event', gen, 'arg1', 'arg2');
+                const task = yield takeEvery('event', gen, 'arg1', 'arg2');
                 yield put('event', 'first');
                 yield put('event', 'second');
+                yield cancel(task);
             })()
             .then(() => {
                 expect(genCall).toEqual([

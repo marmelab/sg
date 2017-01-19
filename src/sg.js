@@ -24,13 +24,15 @@ function sg(generator, emitter = new SgEmitter(), parentId = null) {
     if (!isGenerator(generator)) {
         throw new Error('sg need a generator function');
     }
-    return (...args) => new Promise((resolve, reject) => {
-        const forkedPromises = [];
+    return (...args) => {
+        const promise = new Promise((resolve, reject) => {
+            const forkedPromises = [];
 
-        emitter.on(`error_${id}`, reject);
-        emitter.on(`fork_${id}`, promise => forkedPromises.push(promise));
+            emitter.on('error', e => e.id === id && reject(e));
+            emitter.on('fork', p => p.id === id && forkedPromises.push(p));
+            emitter.on('cancel', p => p.id === id && resolve());
+            emitter.on('cancel', p => p.id === parentId && resolve());
 
-        setTimeout(() => {
             const iterator = generator(...args);
 
             function loop(next) {
@@ -48,7 +50,10 @@ function sg(generator, emitter = new SgEmitter(), parentId = null) {
                     .catch((error) => {
                         console.log({ error });
                         if (parentId) {
-                            emitter.emit(`error_${parentId}`, error);
+                            emitter.emit('error', {
+                                ...error,
+                                id: parentId,
+                            });
                         }
 
                         reject(error);
@@ -63,8 +68,11 @@ function sg(generator, emitter = new SgEmitter(), parentId = null) {
             } catch (error) {
                 reject(error);
             }
-        }, 1);
-    });
+        });
+
+        promise.id = id;
+        return promise;
+    };
 }
 
 sg.call = callEffect;

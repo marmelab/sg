@@ -1,7 +1,7 @@
 import createEffect from './createEffect';
 
-export const handlePutEffect = ([type, payload], emitter) => {
-    emitter.emit(type, payload);
+export const handlePutEffect = ([type, payload], emitter, id) => {
+    emitter.put(id, type, payload);
     return Promise.resolve();
 };
 

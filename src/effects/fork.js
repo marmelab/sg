@@ -3,7 +3,7 @@ import createEffect from './createEffect';
 
 export const handleForkEffectFactory = sgImpl => ([callable, ...args], emitter, id) => {
     const promise = sgImpl(callable, emitter, id)(...args);
-    emitter.emit(`fork_${id}`, promise);
+    emitter.emit('fork', promise);
 
     return Promise.resolve(() => promise);
 };

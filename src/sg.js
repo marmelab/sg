@@ -50,10 +50,8 @@ function sg(generator, emitter = new SgEmitter(), parentId = null) {
                     .catch((error) => {
                         console.log({ error });
                         if (parentId) {
-                            emitter.emit('error', {
-                                ...error,
-                                id: parentId,
-                            });
+                            error.id = parentId;
+                            emitter.emit('error', error);
                         }
 
                         reject(error);
@@ -66,6 +64,8 @@ function sg(generator, emitter = new SgEmitter(), parentId = null) {
             try {
                 loop(iterator.next());
             } catch (error) {
+                error.id = parentId;
+                emitter.emit('error', error);
                 reject(error);
             }
         });

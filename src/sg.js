@@ -20,49 +20,62 @@ function sg(generator, emitter, parentId = null) {
         throw new Error('sg need a generator function');
     }
     return (...args) => {
+        const iterator = generator(...args);
+        const next = iterator.next();
         const promise = new Promise((resolve, reject) => {
             const forkedPromises = [];
 
-            emitter.on('error', e => e.id === id && reject(e));
-            emitter.on('fork', p => p.id === id && forkedPromises.push(p));
+            emitter.on('error', e => {
+                if (e.id !== id) {
+                    return;
+                }
+                reject(e);
+                if (parentId) {
+                    e.id = parentId;
+                    emitter.emit('error', e);
+                }
+            });
+            emitter.on('fork', p => p.parentId === id && forkedPromises.push(p));
             emitter.on('cancel', p => (p.id === id || p.id === parentId) && resolve());
 
-            const iterator = generator(...args);
-
-            function loop(next) {
+            function loop({ done, value }) {
                 try {
-                    if (next.done) {
-                        return Promise.all(forkedPromises)
-                        .then(() => resolve(next.value))
-                        .catch(reject);
+                    if (done) {
+                        Promise.all(forkedPromises)
+                        .then(() => {
+                            resolve(value);
+                        })
+                        .catch((error) => {
+                            reject(error);
+                            if (parentId) {
+                                error.id = parentId;
+                                emitter.emit('error', error);
+                            }
+                        });
+                        return;
                     }
-                    const effect = next.value;
+                    const effect = value;
 
-                    return handleEffect(effect, emitter, id)
+                    handleEffect(effect, emitter, id)
                     .then(result => loop(iterator.next(result)))
                     .catch(error => loop(iterator.throw(error)))
                     .catch((error) => {
+                        reject(error);
                         if (parentId) {
                             error.id = parentId;
                             emitter.emit('error', error);
                         }
-
-                        reject(error);
                     });
                 } catch (error) {
-                    return reject(error);
+                    reject(error);
+                    if (parentId) {
+                        error.id = parentId;
+                        emitter.emit('error', error);
+                    }
                 }
             }
 
-            try {
-                loop(iterator.next());
-            } catch (error) {
-                if (parentId) {
-                    error.id = parentId;
-                    emitter.emit('error', error);
-                }
-                reject(error);
-            }
+            loop(next);
         });
 
         promise.id = id;

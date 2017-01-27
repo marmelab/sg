@@ -7,8 +7,7 @@ new Promise((resolve, reject) => {
         const promise = sgImpl(callable, emitter, id)(...args);
         emitter.emit('fork', {
             promise,
-            id: promise.id,
-            parentId: id,
+            target: id,
         });
         resolve(() => promise);
     } catch (error) {

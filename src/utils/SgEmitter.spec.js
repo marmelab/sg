@@ -15,8 +15,8 @@ describe('SgEmitter', () => {
 
     describe('on fork/cancel', () => {
         it('should add forked task id to sgEmitter[tasks] and remove canceled task id', () => {
-            sgEmitter.emit('fork', { id: 'id1' });
-            sgEmitter.emit('fork', { id: 'id2' });
+            sgEmitter.emit('fork', { promise: { id: 'id1' } });
+            sgEmitter.emit('fork', { promise: { id: 'id2' } });
             expect(sgEmitter[tasks]).toEqual(['mainId', 'id1', 'id2']);
             sgEmitter.emit('cancel', { id: 'id2' });
             expect(sgEmitter[tasks]).toEqual(['mainId', 'id1']);

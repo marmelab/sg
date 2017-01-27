@@ -38,7 +38,7 @@ function sg(generator, emitter, parentId = null) {
                 }
             });
             emitter.on('fork', (payload) => {
-                if (payload.parentId !== id) {
+                if (payload.target !== id) {
                     return;
                 }
                 forkedPromises.push(payload.promise);

@@ -11,7 +11,7 @@ export default class SgEmitter extends EventEmitter {
         this[puts] = {};
         this[tasks] = [mainId];
         this[takes] = [];
-        this.on('fork', ({ id }) => this[tasks].push(id));
+        this.on('fork', ({ promise }) => this[tasks].push(promise.id));
         this.on('cancel', ({ id }) => {
             this[tasks] = without(this[tasks], id);
         });

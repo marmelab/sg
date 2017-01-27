@@ -36,7 +36,15 @@ function sg(generator, emitter, parentId = null) {
                 }
             });
             emitter.on('fork', p => p.parentId === id && forkedPromises.push(p));
-            emitter.on('cancel', p => (p.id === id || p.id === parentId) && resolve());
+            emitter.on('cancel', (p) => {
+                if (p.id !== id && p.id !== parentId) {
+                    return;
+                }
+                resolve();
+                if (p.id !== id) { // saga parent have been cancelled
+                    emitter.emit('cancel', { id }); // tell saga children to cancel
+                }
+            });
 
             function loop({ done, value }) {
                 try {

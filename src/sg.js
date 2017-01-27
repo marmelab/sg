@@ -1,14 +1,6 @@
 import uuid from 'uuid';
 
 import isGenerator from './utils/isGenerator';
-import callEffect from './effects/call';
-import cpsEffect from './effects/cps';
-import thunkEffect from './effects/thunk';
-import coEffect from './effects/co';
-import takeEffect from './effects/take';
-import putEffect from './effects/put';
-import spawnEffect from './effects/spawn';
-import createEffect from './effects/createEffect';
 import SgEmitter from './utils/SgEmitter';
 
 export const handleEffect = (effect, emitter, id) => {
@@ -73,14 +65,5 @@ function sg(generator, emitter = new SgEmitter(), parentId = null) {
         return promise;
     };
 }
-
-sg.call = callEffect;
-sg.cps = cpsEffect;
-sg.thunk = thunkEffect;
-sg.co = coEffect;
-sg.take = takeEffect;
-sg.put = putEffect;
-sg.spawn = spawnEffect;
-sg.createEffect = createEffect;
 
 export default sg;

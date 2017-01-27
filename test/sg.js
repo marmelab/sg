@@ -1,12 +1,16 @@
 import expect from 'expect';
 
 import sg, { handleEffect } from '../src/sg';
-import call from '../src/effects/call';
-import fork from '../src/effects/fork';
-import put from '../src/effects/put';
-import take from '../src/effects/take';
-import takeEvery from '../src/effects/takeEvery';
-import cancel from '../src/effects/cancel';
+
+import {
+    call,
+    cps,
+    fork,
+    put,
+    take,
+    takeEvery,
+    cancel,
+} from '../src/effects';
 
 describe('sg', () => {
     it('should execute generator', (done) => {
@@ -17,16 +21,16 @@ describe('sg', () => {
             throw new Error('boom');
         };
         function* compute(a, b) {
-            const c = yield sg.call(add, a, b);
+            const c = yield call(add, a, b);
             try {
                 yield call(boom);
             } catch (error) {
                 console.log(error);
             }
 
-            const d = yield sg.call(multiply, c, a);
+            const d = yield call(multiply, c, a);
 
-            return yield sg.cps(substract, d, b);
+            return yield cps(substract, d, b);
         }
 
         sg(compute)(2, 3)
@@ -43,7 +47,7 @@ describe('sg', () => {
             throw new Error('Boom');
         }
         function* bomb() {
-            yield sg.call(boom);
+            yield call(boom);
         }
 
         sg(bomb)()
@@ -79,9 +83,9 @@ describe('sg', () => {
         const substract = (a, b, cb) => cb(null, a - b);
         function* compute(a, b) {
             return yield [
-                sg.call(add, a, b),
-                sg.call(multiply, a, b),
-                sg.cps(substract, a, b),
+                call(add, a, b),
+                call(multiply, a, b),
+                cps(substract, a, b),
             ];
         }
 

@@ -25,24 +25,34 @@ function sg(generator, emitter, parentId = null) {
         const promise = new Promise((resolve, reject) => {
             const forkedPromises = [];
 
-            emitter.on('error', e => {
-                if (e.id !== id) {
+            emitter.on('error', (payload) => {
+                if (payload.id !== id) {
                     return;
                 }
-                reject(e);
+                reject(payload.error);
                 if (parentId) {
-                    e.id = parentId;
-                    emitter.emit('error', e);
+                    emitter.emit('error', {
+                        ...payload,
+                        id: parentId,
+                    });
                 }
             });
-            emitter.on('fork', p => p.parentId === id && forkedPromises.push(p));
-            emitter.on('cancel', (p) => {
-                if (p.id !== id && p.id !== parentId) {
+            emitter.on('fork', (payload) => {
+                if (payload.parentId !== id) {
+                    return;
+                }
+                forkedPromises.push(payload.promise);
+            });
+            emitter.on('cancel', (payload) => {
+                if (payload.id !== id && payload.id !== parentId) {
                     return;
                 }
                 resolve();
-                if (p.id !== id) { // saga parent have been cancelled
-                    emitter.emit('cancel', { id }); // tell saga children to cancel
+                if (payload.id !== id) { // saga parent have been cancelled
+                    emitter.emit('cancel', {
+                        ...payload,
+                        id,
+                    }); // tell saga children to cancel
                 }
             });
 
@@ -56,8 +66,10 @@ function sg(generator, emitter, parentId = null) {
                         .catch((error) => {
                             reject(error);
                             if (parentId) {
-                                error.id = parentId;
-                                emitter.emit('error', error);
+                                emitter.emit('error', {
+                                    error,
+                                    id: parentId,
+                                });
                             }
                         });
                         return;
@@ -70,15 +82,19 @@ function sg(generator, emitter, parentId = null) {
                     .catch((error) => {
                         reject(error);
                         if (parentId) {
-                            error.id = parentId;
-                            emitter.emit('error', error);
+                            emitter.emit('error', {
+                                error,
+                                id: parentId,
+                            });
                         }
                     });
                 } catch (error) {
                     reject(error);
                     if (parentId) {
-                        error.id = parentId;
-                        emitter.emit('error', error);
+                        emitter.emit('error', {
+                            error,
+                            id: parentId,
+                        });
                     }
                 }
             }

@@ -4,7 +4,10 @@ export const handleCancelEffect = ([task], emitter) =>
 new Promise((resolve, reject) => {
     try {
         const promise = task();
-        emitter.emit('cancel', promise);
+        emitter.emit('cancel', {
+            promise,
+            id: promise.id,
+        });
 
         resolve();
     } catch (error) {

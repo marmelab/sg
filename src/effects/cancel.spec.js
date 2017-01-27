@@ -12,7 +12,10 @@ describe('handleCancelEffect', () => {
         };
         await handleCancelEffect([task], emitter);
 
-        expect(emitCall).toEqual(['cancel', 'promise']);
+        expect(emitCall).toEqual(['cancel', {
+            id: undefined,
+            promise: 'promise',
+        }]);
     });
 
     it('should reject if task thrown an error', (done) => {

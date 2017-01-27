@@ -5,8 +5,11 @@ export const handleForkEffectFactory = sgImpl => ([callable, ...args], emitter, 
 new Promise((resolve, reject) => {
     try {
         const promise = sgImpl(callable, emitter, id)(...args);
-        promise.parentId = id;
-        emitter.emit('fork', promise);
+        emitter.emit('fork', {
+            promise,
+            id: promise.id,
+            parentId: id,
+        });
         resolve(() => promise);
     } catch (error) {
         reject(error);

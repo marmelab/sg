@@ -30,8 +30,7 @@ function sg(generator, emitter = new SgEmitter(), parentId = null) {
 
             emitter.on('error', e => e.id === id && reject(e));
             emitter.on('fork', p => p.id === id && forkedPromises.push(p));
-            emitter.on('cancel', p => p.id === id && resolve());
-            emitter.on('cancel', p => p.id === parentId && resolve());
+            emitter.on('cancel', p => (p.id === id || p.id === parentId) && resolve());
 
             const iterator = generator(...args);
 

@@ -6,7 +6,7 @@ new Promise((resolve, reject) => {
         const promise = task();
         emitter.emit('cancel', {
             promise,
-            id: promise.id,
+            target: promise.id,
         });
 
         resolve();

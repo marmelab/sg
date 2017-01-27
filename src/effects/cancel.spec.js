@@ -13,7 +13,7 @@ describe('handleCancelEffect', () => {
         await handleCancelEffect([task], emitter);
 
         expect(emitCall).toEqual(['cancel', {
-            id: undefined,
+            target: undefined,
             promise: 'promise',
         }]);
     });

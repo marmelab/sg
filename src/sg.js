@@ -44,14 +44,14 @@ function sg(generator, emitter, parentId = null) {
                 forkedPromises.push(payload.promise);
             });
             emitter.on('cancel', (payload) => {
-                if (payload.id !== id && payload.id !== parentId) {
+                if (payload.target !== id && payload.target !== parentId) {
                     return;
                 }
                 resolve();
-                if (payload.id !== id) { // saga parent have been cancelled
+                if (payload.target !== id) { // saga parent have been cancelled
                     emitter.emit('cancel', {
                         ...payload,
-                        id,
+                        target: id,
                     }); // tell saga children to cancel
                 }
             });

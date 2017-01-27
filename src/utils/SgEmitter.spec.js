@@ -18,7 +18,7 @@ describe('SgEmitter', () => {
             sgEmitter.emit('fork', { promise: { id: 'id1' } });
             sgEmitter.emit('fork', { promise: { id: 'id2' } });
             expect(sgEmitter[tasks]).toEqual(['mainId', 'id1', 'id2']);
-            sgEmitter.emit('cancel', { id: 'id2' });
+            sgEmitter.emit('cancel', { target: 'id2' });
             expect(sgEmitter[tasks]).toEqual(['mainId', 'id1']);
         });
     });

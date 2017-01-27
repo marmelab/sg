@@ -56,6 +56,16 @@ function sg(generator, emitter, parentId = null) {
                 }
             });
 
+            const abortSaga = (error) => {
+                reject(error);
+                if (parentId) {
+                    emitter.emit('error', {
+                        error,
+                        target: parentId,
+                    });
+                }
+            };
+
             function loop({ done, value }) {
                 try {
                     if (done) {
@@ -63,15 +73,7 @@ function sg(generator, emitter, parentId = null) {
                         .then(() => {
                             resolve(value);
                         })
-                        .catch((error) => {
-                            reject(error);
-                            if (parentId) {
-                                emitter.emit('error', {
-                                    error,
-                                    target: parentId,
-                                });
-                            }
-                        });
+                        .catch(abortSaga);
                         return;
                     }
                     const effect = value;
@@ -79,23 +81,9 @@ function sg(generator, emitter, parentId = null) {
                     handleEffect(effect, emitter, id)
                     .then(result => loop(iterator.next(result)))
                     .catch(error => loop(iterator.throw(error)))
-                    .catch((error) => {
-                        reject(error);
-                        if (parentId) {
-                            emitter.emit('error', {
-                                error,
-                                target: parentId,
-                            });
-                        }
-                    });
+                    .catch(abortSaga);
                 } catch (error) {
-                    reject(error);
-                    if (parentId) {
-                        emitter.emit('error', {
-                            error,
-                            target: parentId,
-                        });
-                    }
+                    abortSaga(error);
                 }
             }
 

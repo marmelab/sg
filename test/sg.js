@@ -162,25 +162,22 @@ describe('sg', () => {
             .catch(done);
         });
 
-        it('should be able to communicate with deeply nested saga', (done) => {
+        it('should be able to communicate with nested saga', (done) => {
             let payload;
-            function* fork2() {
-                yield put('from_fork2', 'fork2_payload');
-            }
 
             function* fork1() {
-                yield fork(fork2);
+                yield put('from_fork1', 'fork1_payload');
             }
 
             function* main() {
                 yield fork(fork1);
-                payload = yield take('from_fork2');
+                payload = yield take('from_fork1');
             }
 
             sg(main)()
             .then((result) => {
                 expect(result).toBe(undefined);
-                expect(payload).toBe('fork2_payload');
+                expect(payload).toBe('fork1_payload');
                 done();
             })
             .catch(done);

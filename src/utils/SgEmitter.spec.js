@@ -4,16 +4,22 @@ import SgEmitter, { takes, puts, tasks } from './SgEmitter';
 describe('SgEmitter', () => {
     let sgEmitter;
     beforeEach(() => {
-        sgEmitter = new SgEmitter();
+        sgEmitter = new SgEmitter('mainId');
+    });
+
+    it('should be initialized with tasks containing mainId', () => {
+        expect(sgEmitter[tasks]).toEqual(['mainId']);
+        expect(sgEmitter[puts]).toEqual({});
+        expect(sgEmitter[takes]).toEqual([]);
     });
 
     describe('on fork/cancel', () => {
         it('should add forked task id to sgEmitter[tasks] and remove canceled task id', () => {
             sgEmitter.emit('fork', { id: 'id1' });
             sgEmitter.emit('fork', { id: 'id2' });
-            expect(sgEmitter[tasks]).toEqual(['id1', 'id2']);
+            expect(sgEmitter[tasks]).toEqual(['mainId', 'id1', 'id2']);
             sgEmitter.emit('cancel', { id: 'id2' });
-            expect(sgEmitter[tasks]).toEqual(['id1']);
+            expect(sgEmitter[tasks]).toEqual(['mainId', 'id1']);
         });
     });
 
@@ -51,7 +57,7 @@ describe('SgEmitter', () => {
             sgEmitter.on('event', (payload) => {
                 try {
                     expect(payload).toBe(payload);
-                    expect(sgEmitter[puts]).toEqual({});
+                    expect(sgEmitter[puts]).toEqual({ event_mainId: 'payload' });
                     done();
                 } catch (error) {
                     done(error);

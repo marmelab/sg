@@ -6,10 +6,10 @@ export const tasks = Symbol('tasks');
 export const takes = Symbol('takes');
 
 export default class SgEmitter extends EventEmitter {
-    constructor() {
+    constructor(mainId) {
         super();
         this[puts] = {};
-        this[tasks] = [];
+        this[tasks] = [mainId];
         this[takes] = [];
         this.on('fork', ({ id }) => this[tasks].push(id));
         this.on('cancel', ({ id }) => {

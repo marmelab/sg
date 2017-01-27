@@ -11,8 +11,11 @@ export const handleEffect = (effect, emitter, id) => {
     return effect.handle(effect.args, emitter, id);
 };
 
-function sg(generator, emitter = new SgEmitter(), parentId = null) {
+function sg(generator, emitter, parentId = null) {
     const id = uuid();
+    if (!emitter) {
+        emitter = new SgEmitter(id);
+    }
     if (!isGenerator(generator)) {
         throw new Error('sg need a generator function');
     }
@@ -39,7 +42,6 @@ function sg(generator, emitter = new SgEmitter(), parentId = null) {
                     .then(result => loop(iterator.next(result)))
                     .catch(error => loop(iterator.throw(error)))
                     .catch((error) => {
-                        console.log({ error });
                         if (parentId) {
                             error.id = parentId;
                             emitter.emit('error', error);
@@ -48,15 +50,17 @@ function sg(generator, emitter = new SgEmitter(), parentId = null) {
                         reject(error);
                     });
                 } catch (error) {
-                    console.log({ error });
                     return reject(error);
                 }
             }
+
             try {
                 loop(iterator.next());
             } catch (error) {
-                error.id = parentId;
-                emitter.emit('error', error);
+                if (parentId) {
+                    error.id = parentId;
+                    emitter.emit('error', error);
+                }
                 reject(error);
             }
         });

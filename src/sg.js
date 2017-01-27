@@ -26,14 +26,14 @@ function sg(generator, emitter, parentId = null) {
             const forkedPromises = [];
 
             emitter.on('error', (payload) => {
-                if (payload.id !== id) {
+                if (payload.target !== id) {
                     return;
                 }
                 reject(payload.error);
                 if (parentId) {
                     emitter.emit('error', {
                         ...payload,
-                        id: parentId,
+                        target: parentId,
                     });
                 }
             });
@@ -68,7 +68,7 @@ function sg(generator, emitter, parentId = null) {
                             if (parentId) {
                                 emitter.emit('error', {
                                     error,
-                                    id: parentId,
+                                    target: parentId,
                                 });
                             }
                         });
@@ -84,7 +84,7 @@ function sg(generator, emitter, parentId = null) {
                         if (parentId) {
                             emitter.emit('error', {
                                 error,
-                                id: parentId,
+                                target: parentId,
                             });
                         }
                     });
@@ -93,7 +93,7 @@ function sg(generator, emitter, parentId = null) {
                     if (parentId) {
                         emitter.emit('error', {
                             error,
-                            id: parentId,
+                            target: parentId,
                         });
                     }
                 }

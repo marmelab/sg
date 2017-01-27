@@ -38,6 +38,20 @@ describe('SgEmitter', () => {
             .catch(done);
         });
 
+        it('should reject if sgEmitter[takes] is not an array', (done) => {
+            sgEmitter[takes] = undefined;
+
+            sgEmitter.take('id', 'type')
+            .then(() => {
+                throw new Error('take promise should have been rejected');
+            })
+            .catch((error) => {
+                expect(error.message).toBe('Cannot read property \'push\' of undefined');
+                done();
+            })
+            .catch(done);
+        });
+
         it('should add listener to type and add ids in sgEmitter[takes] if no matching value in puts', (done) => {
             const takePromise = sgEmitter.take('id', 'event');
             expect(sgEmitter.listeners('event').length).toBe(1);

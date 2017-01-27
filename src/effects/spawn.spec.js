@@ -28,4 +28,19 @@ describe('handleSpawnEffect', () => {
         })
         .catch(done);
     });
+
+    it('should reject to error thrown by sgImpl', (done) => {
+        sgImpl = () => () => {
+            throw new Error('Boom');
+        };
+        handleSpawnEffect(sgImpl)('arg1', 'arg2')
+        .then(() => {
+            throw new Error('handleSpawnEffect should have been rejected');
+        })
+        .catch((error) => {
+            expect(error.message).toBe('Boom');
+            done();
+        })
+        .catch(done);
+    });
 });

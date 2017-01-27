@@ -18,19 +18,24 @@ export default class SgEmitter extends EventEmitter {
     }
 
     take(id, type) {
-        const key = `${type}_${id}`;
-        const event = this[puts][key];
-        if (event) {
-            delete this[puts][key];
-            return Promise.resolve(event);
-        }
-        this[takes].push(id);
+        return new Promise((resolve, reject) => {
+            try {
+                const key = `${type}_${id}`;
+                const event = this[puts][key];
+                if (event) {
+                    delete this[puts][key];
+                    resolve(event);
+                    return;
+                }
+                this[takes].push(id);
 
-        return new Promise((resolve) => {
-            this.once(type, (payload) => {
-                this[takes] = without(this[takes], id);
-                resolve(payload);
-            });
+                this.once(type, (payload) => {
+                    this[takes] = without(this[takes], id);
+                    resolve(payload);
+                });
+            } catch (error) {
+                reject(error);
+            }
         });
     }
 

@@ -15,7 +15,7 @@ export const handleEffect = (effect, emitter, id) => {
     return effect.handle(effect.args, emitter, id);
 };
 
-function sg(generator, emitter, parentId = null) {
+export function newTask(generator, emitter, parentId = null) {
     const id = uuid();
     if (!emitter) {
         emitter = new SgEmitter(id);
@@ -48,7 +48,7 @@ function sg(generator, emitter, parentId = null) {
             if (payload.target !== id) {
                 return;
             }
-            forkedPromises.push(payload.promise);
+            forkedPromises.push(payload.task.done());
         });
 
         emitter.on('cancel', (payload) => {
@@ -95,12 +95,17 @@ function sg(generator, emitter, parentId = null) {
 
         loop(next);
 
-        promise[ID] = id;
-
-        promise[CANCEL] = () => resolve();
-
-        return promise;
+        return {
+            id,
+            cancel: () => resolve(),
+            done: () => promise,
+        };
     };
+}
+
+function sg(generator, emitter, parentId = null) {
+    const task = newTask(generator, emitter, parentId);
+    return (...args) => task(...args).done();
 }
 
 export default sg;

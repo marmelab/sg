@@ -1,6 +1,5 @@
 import without from 'lodash/without';
 import EventEmitter from 'events';
-import { ID } from '../sg';
 
 export const puts = Symbol('puts');
 export const tasks = Symbol('tasks');
@@ -12,7 +11,7 @@ export default class SgEmitter extends EventEmitter {
         this[puts] = {};
         this[tasks] = [mainId];
         this[takes] = [];
-        this.on('fork', ({ promise }) => this[tasks].push(promise[ID]));
+        this.on('fork', ({ task }) => this[tasks].push(task.id));
         this.on('cancel', ({ target }) => {
             this[tasks] = without(this[tasks], target);
         });

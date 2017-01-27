@@ -4,39 +4,35 @@ import { handleForkEffectFactory } from './fork';
 import SgEmitter from '../utils/SgEmitter';
 
 describe('handleForkEffectFactory', () => {
-    let sgImpl;
-    let sgResultFn;
+    let newTaskImpl;
+    let newTaskResultFn;
     let emitter;
     before(() => {
-        sgResultFn = expect.createSpy().andReturn(Promise.resolve('sgResult'));
-        sgImpl = expect.createSpy().andReturn(sgResultFn);
+        newTaskResultFn = expect.createSpy().andReturn(Promise.resolve('task object'));
+        newTaskImpl = expect.createSpy().andReturn(newTaskResultFn);
         emitter = new SgEmitter();
     });
 
-    it('should call sgImpl with received arg', () => {
-        handleForkEffectFactory(sgImpl)(['arg1_1', 'arg1_2', 'arg1_3'], emitter, 'id');
-        expect(sgImpl).toHaveBeenCalledWith('arg1_1', emitter, 'id');
-        expect(sgResultFn).toHaveBeenCalledWith('arg1_2', 'arg1_3');
+    it('should call newTaskImpl with received arg', () => {
+        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], emitter, 'id');
+        expect(newTaskImpl).toHaveBeenCalledWith('arg1_1', emitter, 'id');
+        expect(newTaskResultFn).toHaveBeenCalledWith('arg1_2', 'arg1_3');
     });
 
-    it('should resolve to a function returning sgImpl resulting promise', (done) => {
-        handleForkEffectFactory(sgImpl)('arg1', emitter)
+    it('should resolve to a function returning newTaskImpl resulting promise', (done) => {
+        handleForkEffectFactory(newTaskImpl)('arg1', emitter)
         .then((result) => {
-            expect(result).toBeA('function');
-            return result();
-        })
-        .then((handleCallResult) => {
-            expect(handleCallResult).toEqual('sgResult');
+            expect(result).toBe('task object');
             done();
         })
         .catch(done);
     });
 
-    it('should reject with error thrown by sgImpl if any', (done) => {
-        sgImpl = () => () => {
+    it('should reject with error thrown by newTaskImpl if any', (done) => {
+        newTaskImpl = () => () => {
             throw new Error('Boom');
         };
-        handleForkEffectFactory(sgImpl)(['arg1_1', 'arg1_2', 'arg1_3'], emitter, 'id')
+        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], emitter, 'id')
         .then(() => {
             throw new Error('handleForkEffect should have thrown an error');
         })

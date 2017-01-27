@@ -1,15 +1,15 @@
-import sg from '../sg';
+import { newTask } from '../sg';
 import createEffect from './createEffect';
 
-export const handleSpawnEffect = sgImpl => ([callable, ...args], emitter) =>
+export const handleSpawnEffect = newTaskImpl => ([callable, ...args], emitter) =>
     new Promise((resolve, reject) => {
         try {
-            const promise = sgImpl(callable, emitter)(...args);
+            const task = newTaskImpl(callable, emitter)(...args);
 
-            resolve(() => promise);
+            resolve(task);
         } catch (error) {
             reject(error);
         }
     });
 
-export default createEffect('spawn', handleSpawnEffect(sg));
+export default createEffect('spawn', handleSpawnEffect(newTask));

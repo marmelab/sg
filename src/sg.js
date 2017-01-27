@@ -1,14 +1,6 @@
 import uuid from 'uuid';
 
 import isGenerator from './utils/isGenerator';
-import callEffect from './effects/call';
-import cpsEffect from './effects/cps';
-import thunkEffect from './effects/thunk';
-import coEffect from './effects/co';
-import takeEffect from './effects/take';
-import putEffect from './effects/put';
-import spawnEffect from './effects/spawn';
-import createEffect from './effects/createEffect';
 import SgEmitter from './utils/SgEmitter';
 
 export const handleEffect = (effect, emitter, id) => {
@@ -19,61 +11,84 @@ export const handleEffect = (effect, emitter, id) => {
     return effect.handle(effect.args, emitter, id);
 };
 
-function sg(generator, emitter = new SgEmitter(), parentId = null) {
+function sg(generator, emitter, parentId = null) {
     const id = uuid();
+    if (!emitter) {
+        emitter = new SgEmitter(id);
+    }
     if (!isGenerator(generator)) {
         throw new Error('sg need a generator function');
     }
-    return (...args) => new Promise((resolve, reject) => {
-        const forkedPromises = [];
+    return (...args) => {
+        const iterator = generator(...args);
+        const next = iterator.next();
+        const promise = new Promise((resolve, reject) => {
+            const forkedPromises = [];
 
-        emitter.on(`error_${id}`, reject);
-        emitter.on(`fork_${id}`, promise => forkedPromises.push(promise));
+            emitter.on('error', e => {
+                if (e.id !== id) {
+                    return;
+                }
+                reject(e);
+                if (parentId) {
+                    e.id = parentId;
+                    emitter.emit('error', e);
+                }
+            });
+            emitter.on('fork', p => p.parentId === id && forkedPromises.push(p));
+            emitter.on('cancel', (p) => {
+                if (p.id !== id && p.id !== parentId) {
+                    return;
+                }
+                resolve();
+                if (p.id !== id) { // saga parent have been cancelled
+                    emitter.emit('cancel', { id }); // tell saga children to cancel
+                }
+            });
 
-        setTimeout(() => {
-            const iterator = generator(...args);
-
-            function loop(next) {
+            function loop({ done, value }) {
                 try {
-                    if (next.done) {
-                        return Promise.all(forkedPromises)
-                        .then(() => resolve(next.value))
-                        .catch(reject);
+                    if (done) {
+                        Promise.all(forkedPromises)
+                        .then(() => {
+                            resolve(value);
+                        })
+                        .catch((error) => {
+                            reject(error);
+                            if (parentId) {
+                                error.id = parentId;
+                                emitter.emit('error', error);
+                            }
+                        });
+                        return;
                     }
-                    const effect = next.value;
+                    const effect = value;
 
-                    return handleEffect(effect, emitter, id)
+                    handleEffect(effect, emitter, id)
                     .then(result => loop(iterator.next(result)))
                     .catch(error => loop(iterator.throw(error)))
                     .catch((error) => {
-                        console.log({ error });
-                        if (parentId) {
-                            emitter.emit(`error_${parentId}`, error);
-                        }
-
                         reject(error);
+                        if (parentId) {
+                            error.id = parentId;
+                            emitter.emit('error', error);
+                        }
                     });
                 } catch (error) {
-                    console.log({ error });
-                    return reject(error);
+                    reject(error);
+                    if (parentId) {
+                        error.id = parentId;
+                        emitter.emit('error', error);
+                    }
                 }
             }
-            try {
-                loop(iterator.next());
-            } catch (error) {
-                reject(error);
-            }
-        }, 1);
-    });
-}
 
-sg.call = callEffect;
-sg.cps = cpsEffect;
-sg.thunk = thunkEffect;
-sg.co = coEffect;
-sg.take = takeEffect;
-sg.put = putEffect;
-sg.spawn = spawnEffect;
-sg.createEffect = createEffect;
+            loop(next);
+        });
+
+        promise.id = id;
+        return promise;
+    };
+}
 
 export default sg;

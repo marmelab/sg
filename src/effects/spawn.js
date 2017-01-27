@@ -1,10 +1,15 @@
 import sg from '../sg';
 import createEffect from './createEffect';
 
-export const handleSpawnEffect = sgImpl => ([callable, ...args], emitter) => {
-    const promise = sgImpl(callable, emitter)(...args);
+export const handleSpawnEffect = sgImpl => ([callable, ...args], emitter) =>
+    new Promise((resolve, reject) => {
+        try {
+            const promise = sgImpl(callable, emitter)(...args);
 
-    return Promise.resolve(() => promise);
-};
+            resolve(() => promise);
+        } catch (error) {
+            reject(error);
+        }
+    });
 
 export default createEffect('spawn', handleSpawnEffect(sg));

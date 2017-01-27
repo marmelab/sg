@@ -1,11 +1,16 @@
 import expect from 'expect';
 
 import sg, { handleEffect } from '../src/sg';
-import call from '../src/effects/call';
-import fork from '../src/effects/fork';
-import put from '../src/effects/put';
-import take from '../src/effects/take';
-import takeEvery from '../src/effects/takeEvery';
+
+import {
+    call,
+    cps,
+    fork,
+    put,
+    take,
+    takeEvery,
+    cancel,
+} from '../src/effects';
 
 describe('sg', () => {
     it('should execute generator', (done) => {
@@ -16,16 +21,16 @@ describe('sg', () => {
             throw new Error('boom');
         };
         function* compute(a, b) {
-            const c = yield sg.call(add, a, b);
+            const c = yield call(add, a, b);
             try {
                 yield call(boom);
             } catch (error) {
                 console.log(error);
             }
 
-            const d = yield sg.call(multiply, c, a);
+            const d = yield call(multiply, c, a);
 
-            return yield sg.cps(substract, d, b);
+            return yield cps(substract, d, b);
         }
 
         sg(compute)(2, 3)
@@ -42,7 +47,7 @@ describe('sg', () => {
             throw new Error('Boom');
         }
         function* bomb() {
-            yield sg.call(boom);
+            yield call(boom);
         }
 
         sg(bomb)()
@@ -56,20 +61,12 @@ describe('sg', () => {
         .catch(done);
     });
 
-    it('should reject with error throw directly by generator', (done) => {
+    it('should throw error directly thrown by generator', () => {
         function* bomb() {
             throw new Error('Boom');
         }
 
-        sg(bomb)()
-        .then(() => {
-            done(new Error('it should have thrown an error'));
-        })
-        .catch((error) => {
-            expect(error.message).toBe('Boom');
-            done();
-        })
-        .catch(done);
+        expect(() => sg(bomb)()).toThrow('Boom');
     });
 
     it('should handle array of effect', (done) => {
@@ -78,9 +75,9 @@ describe('sg', () => {
         const substract = (a, b, cb) => cb(null, a - b);
         function* compute(a, b) {
             return yield [
-                sg.call(add, a, b),
-                sg.call(multiply, a, b),
-                sg.cps(substract, a, b),
+                call(add, a, b),
+                call(multiply, a, b),
+                cps(substract, a, b),
             ];
         }
 
@@ -113,6 +110,7 @@ describe('sg', () => {
     describe('put take fork', () => {
         it('should reject with error thrown in forked generator', (done) => {
             function* sub() {
+                yield call(() => {});
                 throw new Error('sub Boom');
             }
             function* main() {
@@ -157,25 +155,22 @@ describe('sg', () => {
             .catch(done);
         });
 
-        it('should be able to communicate with deeply nested saga', (done) => {
+        it('should be able to communicate with nested saga', (done) => {
             let payload;
-            function* fork2() {
-                yield put('from_fork2', 'fork2_payload');
-            }
 
             function* fork1() {
-                yield fork(fork2);
+                yield put('from_fork1', 'fork1_payload');
             }
 
             function* main() {
                 yield fork(fork1);
-                payload = yield take('from_fork2');
+                payload = yield take('from_fork1');
             }
 
             sg(main)()
             .then((result) => {
                 expect(result).toBe(undefined);
-                expect(payload).toBe('fork2_payload');
+                expect(payload).toBe('fork1_payload');
                 done();
             })
             .catch(done);
@@ -206,17 +201,17 @@ describe('sg', () => {
     });
 
     describe('takeEvery', () => {
-        // @TODO: use future cancel effect to cancel takeEvery task
-        it.skip('should call given generator on each taken effect', (done) => {
+        it('should call given generator on each taken effect', (done) => {
             const genCall = [];
             function* gen(...args) {
                 genCall.push(args);
             }
 
             sg(function* () {
-                yield takeEvery('event', gen, 'arg1', 'arg2');
+                const task = yield takeEvery('event', gen, 'arg1', 'arg2');
                 yield put('event', 'first');
                 yield put('event', 'second');
+                yield cancel(task);
             })()
             .then(() => {
                 expect(genCall).toEqual([

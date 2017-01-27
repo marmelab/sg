@@ -4,12 +4,12 @@ import { handlePutEffect } from './put';
 
 describe('handlePutEffect', () => {
     const emitter = {
-        emit: expect.createSpy(),
+        put: expect.createSpy(),
     };
 
     it('should emit type with payload using received emitter', () => {
-        handlePutEffect(['event', { payload: 'data' }], emitter);
-        expect(emitter.emit).toHaveBeenCalledWith('event', { payload: 'data' });
+        handlePutEffect(['event', { payload: 'data' }], emitter, 'id');
+        expect(emitter.put).toHaveBeenCalledWith('id', 'event', { payload: 'data' });
     });
 
     it('should return a promise resolving to undefined', (done) => {

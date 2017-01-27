@@ -31,4 +31,19 @@ describe('handleForkEffectFactory', () => {
         })
         .catch(done);
     });
+
+    it('should reject with error thrown by sgImpl if any', (done) => {
+        sgImpl = () => () => {
+            throw new Error('Boom');
+        };
+        handleForkEffectFactory(sgImpl)(['arg1_1', 'arg1_2', 'arg1_3'], emitter, 'id')
+        .then(() => {
+            throw new Error('handleForkEffect should have thrown an error');
+        })
+        .catch((error) => {
+            expect(error.message).toBe('Boom');
+            done();
+        })
+        .catch(done);
+    });
 });

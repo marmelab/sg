@@ -102,8 +102,20 @@ const done = yield fork(sgGenerator);
 yield done(); //resolve when spawned task resolve
 ```
 
-### coming soon
- - takeEvery (execute given generator for each matching event)
+### cancel
+take a task returned by fork or spawn, and cancel it ending it and its children.
+
+### takeEvery
+fork given generator each time given event is triggered.
+It is the same as forking the following generator:
+```js
+function* takeEverySaga(type, gen, ...args) {
+    while (true) {
+        const action = yield take(type);
+        yield fork(gen, ...args.concat(action));
+    }
+}
+```
 
 ###Adding your own custom effects with createEffect
 You can create your own effect with createEffect.

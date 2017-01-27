@@ -1,5 +1,6 @@
 import expect from 'expect';
 import SgEmitter, { takes, puts, tasks } from './SgEmitter';
+import { ID } from '../sg';
 
 describe('SgEmitter', () => {
     let sgEmitter;
@@ -15,8 +16,8 @@ describe('SgEmitter', () => {
 
     describe('on fork/cancel', () => {
         it('should add forked task id to sgEmitter[tasks] and remove canceled task id', () => {
-            sgEmitter.emit('fork', { promise: { id: 'id1' } });
-            sgEmitter.emit('fork', { promise: { id: 'id2' } });
+            sgEmitter.emit('fork', { promise: { [ID]: 'id1' } });
+            sgEmitter.emit('fork', { promise: { [ID]: 'id2' } });
             expect(sgEmitter[tasks]).toEqual(['mainId', 'id1', 'id2']);
             sgEmitter.emit('cancel', { target: 'id2' });
             expect(sgEmitter[tasks]).toEqual(['mainId', 'id1']);

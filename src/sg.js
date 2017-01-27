@@ -2,6 +2,10 @@ import uuid from 'uuid';
 
 import isGenerator from './utils/isGenerator';
 import SgEmitter from './utils/SgEmitter';
+import deferred from './utils/deferred';
+
+export const CANCEL = Symbol('CANCEL');
+export const ID = Symbol('ID');
 
 export const handleEffect = (effect, emitter, id) => {
     if (Array.isArray(effect)) {
@@ -22,75 +26,79 @@ function sg(generator, emitter, parentId = null) {
     return (...args) => {
         const iterator = generator(...args);
         const next = iterator.next();
-        const promise = new Promise((resolve, reject) => {
-            const forkedPromises = [];
 
-            emitter.on('error', (payload) => {
-                if (payload.target !== id) {
-                    return;
-                }
-                reject(payload.error);
-                if (parentId) {
-                    emitter.emit('error', {
-                        ...payload,
-                        target: parentId,
-                    });
-                }
-            });
-            emitter.on('fork', (payload) => {
-                if (payload.target !== id) {
-                    return;
-                }
-                forkedPromises.push(payload.promise);
-            });
-            emitter.on('cancel', (payload) => {
-                if (payload.target !== id && payload.target !== parentId) {
-                    return;
-                }
-                resolve();
-                if (payload.target !== id) { // saga parent have been cancelled
-                    emitter.emit('cancel', {
-                        ...payload,
-                        target: id,
-                    }); // tell saga children to cancel
-                }
-            });
+        const { promise, resolve, reject } = deferred();
 
-            const abortSaga = (error) => {
-                reject(error);
-                if (parentId) {
-                    emitter.emit('error', {
-                        error,
-                        target: parentId,
-                    });
-                }
-            };
+        const forkedPromises = [];
 
-            function loop({ done, value }) {
-                try {
-                    if (done) {
-                        Promise.all(forkedPromises)
-                        .then(() => {
-                            resolve(value);
-                        })
-                        .catch(abortSaga);
-                        return;
-                    }
-                    const effect = value;
-
-                    handleEffect(effect, emitter, id)
-                    .then(result => loop(iterator.next(result)))
-                    .catch(error => loop(iterator.throw(error)))
-                    .catch(abortSaga);
-                } catch (error) {
-                    abortSaga(error);
-                }
+        emitter.on('error', (payload) => {
+            if (payload.target !== id) {
+                return;
             }
-
-            loop(next);
+            reject(payload.error);
+            if (parentId) {
+                emitter.emit('error', {
+                    ...payload,
+                    target: parentId,
+                });
+            }
         });
 
-        promise.id = id;
+        emitter.on('fork', (payload) => {
+            if (payload.target !== id) {
+                return;
+            }
+            forkedPromises.push(payload.promise);
+        });
+
+        emitter.on('cancel', (payload) => {
+            if (payload.target !== parentId) {
+                return;
+            }
+            resolve();
+            emitter.emit('cancel', {
+                ...payload,
+                target: id,
+            }); // tell saga children to cancel
+        });
+
+        const abortSaga = (error) => {
+            reject(error);
+            if (parentId) {
+                emitter.emit('error', {
+                    error,
+                    target: parentId,
+                });
+            }
+        };
+
+        function loop({ done, value }) {
+            try {
+                if (done) {
+                    Promise.all(forkedPromises)
+                    .then(() => {
+                        resolve(value);
+                    })
+                    .catch(abortSaga);
+                    return;
+                }
+                const effect = value;
+
+                handleEffect(effect, emitter, id)
+                .then(result => loop(iterator.next(result)))
+                .catch(error => loop(iterator.throw(error)))
+                .catch(abortSaga);
+            } catch (error) {
+                abortSaga(error);
+            }
+        }
+
+        loop(next);
+
+        promise[ID] = id;
+
+        promise[CANCEL] = () => resolve();
+
         return promise;
     };
 }

@@ -5,10 +5,6 @@ export const handleForkEffectFactory = newTaskImpl => ([callable, ...args], emit
 new Promise((resolve, reject) => {
     try {
         const task = newTaskImpl(callable, emitter, id)(...args);
-        emitter.emit('fork', {
-            task,
-            target: id,
-        });
         resolve(task);
     } catch (error) {
         reject(error);

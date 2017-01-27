@@ -13,10 +13,14 @@ export default function newTask(generator, emitter, parentId = null) {
         throw new Error('sg need a generator function');
     }
     return (...args) => {
+        const { promise, resolve, reject } = deferred();
+
+        if (parentId) {
+            emitter.emit('newTask', { target: parentId, id, promise });
+        }
+
         const iterator = generator(...args);
         const next = iterator.next();
-
-        const { promise, resolve, reject } = deferred();
 
         const forkedPromises = [];
 
@@ -33,11 +37,11 @@ export default function newTask(generator, emitter, parentId = null) {
             }
         });
 
-        emitter.on('fork', (payload) => {
+        emitter.on('newTask', (payload) => {
             if (payload.target !== id) {
                 return;
             }
-            forkedPromises.push(payload.task.done());
+            forkedPromises.push(payload.promise);
         });
 
         emitter.on('cancel', (payload) => {
@@ -84,10 +88,12 @@ export default function newTask(generator, emitter, parentId = null) {
 
         loop(next);
 
-        return {
+        const task = {
             id,
             cancel: () => resolve(),
             done: () => promise,
         };
+
+        return task;
     };
 }

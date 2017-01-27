@@ -110,6 +110,7 @@ describe('sg', () => {
     describe('put take fork', () => {
         it('should reject with error thrown in forked generator', (done) => {
             function* sub() {
+                yield call(() => {});
                 throw new Error('sub Boom');
             }
             function* main() {

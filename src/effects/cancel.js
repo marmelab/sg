@@ -1,10 +1,15 @@
 import createEffect from './createEffect';
 
-export const handleCancelEffect = ([task], emitter) => {
-    const promise = task();
-    emitter.emit('cancel', promise);
+export const handleCancelEffect = ([task], emitter) =>
+new Promise((resolve, reject) => {
+    try {
+        const promise = task();
+        emitter.emit('cancel', promise);
 
-    return Promise.resolve();
-};
+        resolve();
+    } catch (error) {
+        reject(error);
+    }
+});
 
 export default createEffect('cps', handleCancelEffect);

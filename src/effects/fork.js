@@ -1,4 +1,4 @@
-import { newTask } from '../sg';
+import newTask from '../utils/newTask';
 import createEffect from './createEffect';
 
 export const handleForkEffectFactory = newTaskImpl => ([callable, ...args], emitter, id) =>

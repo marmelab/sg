@@ -192,14 +192,27 @@ describe('sg', () => {
 
             sg(function* () {
                 const task = yield takeEvery('event', gen, 'arg1', 'arg2');
-                yield put('event', 'first');
-                yield put('event', 'second');
+                yield put('event', '1');
+                yield put('event', '2');
+                yield put('event', '3');
+                yield put('event', '4');
+                yield put('event', '5');
+                yield put('event', '6');
+                yield put('event', '7');
+                yield put('event', '8');
+                yield call(() => new Promise(resolve => setTimeout(resolve, 100)));
                 yield cancel(task);
             })()
             .then(() => {
                 expect(genCall).toEqual([
-                    ['arg1', 'arg2', 'first'],
-                    ['arg1', 'arg2', 'second'],
+                    ['arg1', 'arg2', '1'],
+                    ['arg1', 'arg2', '2'],
+                    ['arg1', 'arg2', '3'],
+                    ['arg1', 'arg2', '4'],
+                    ['arg1', 'arg2', '5'],
+                    ['arg1', 'arg2', '6'],
+                    ['arg1', 'arg2', '7'],
+                    ['arg1', 'arg2', '8'],
                 ]);
                 done();
             })

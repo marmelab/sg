@@ -64,6 +64,13 @@ export default function newTask(generator, emitter, parentId = null) {
             }
         };
 
+        const resolveSaga = value =>
+            Promise.all(forkedPromises)
+            .then(() => {
+                resolve(value);
+            })
+            .catch(abortSaga);
+
         function loop(data, isError) {
             try {
                 const { done, value } = isError ? iterator.throw(data) : iterator.next(data);
@@ -71,11 +78,7 @@ export default function newTask(generator, emitter, parentId = null) {
                     return;
                 }
                 if (done) {
-                    Promise.all(forkedPromises)
-                    .then(() => {
-                        resolve(value);
-                    })
-                    .catch(abortSaga);
+                    resolveSaga(value);
                     return;
                 }
 

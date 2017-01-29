@@ -2,7 +2,7 @@ import uuid from 'uuid';
 import SgEmitter from './SgEmitter';
 import isGenerator from './isGenerator';
 import deferred from './deferred';
-import handleEffect from './handleEffect';
+import effectHandler from './effectHandler';
 
 export default function newTask(generator, emitter, parentId = null) {
     const id = uuid();
@@ -71,6 +71,8 @@ export default function newTask(generator, emitter, parentId = null) {
             })
             .catch(abortSaga);
 
+        const handleEffect = effectHandler(emitter, id);
+
         function loop(data, isError) {
             try {
                 const { done, value } = isError ? iterator.throw(data) : iterator.next(data);
@@ -82,7 +84,7 @@ export default function newTask(generator, emitter, parentId = null) {
                     return;
                 }
 
-                handleEffect(value, emitter, id)
+                handleEffect(value)
                 .then(result => loop(result))
                 .catch(error => loop(error, true))
                 .catch(abortSaga);

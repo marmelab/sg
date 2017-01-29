@@ -1,4 +1,4 @@
-export default (effect, emitter, id) => {
+export default (emitter, id) => (effect) => {
     if (Array.isArray(effect)) {
         return Promise.all(effect.map(e => e.handle(e.args, emitter, id)));
     }

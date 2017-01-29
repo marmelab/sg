@@ -1,8 +1,8 @@
 import expect from 'expect';
 
-import handleEffect from './handleEffect';
+import effectHandler from './effectHandler';
 
-describe('handleEffect', () => {
+describe('effectHandler', () => {
     it('should call effect.handle with effect.args and second argument emitter', () => {
         let handleCall;
         const handle = (...args) => {
@@ -13,8 +13,8 @@ describe('handleEffect', () => {
             args: ['arg1', 'arg2'],
         };
 
-        handleEffect(effect, 'parentEmitter', 'emitter');
+        effectHandler('emitter', 'id')(effect);
 
-        expect(handleCall).toEqual([['arg1', 'arg2'], 'parentEmitter', 'emitter']);
+        expect(handleCall).toEqual([['arg1', 'arg2'], 'emitter', 'id']);
     });
 });

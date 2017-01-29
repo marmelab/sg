@@ -2,7 +2,7 @@ import expect from 'expect';
 
 import sagaIterator from './sagaIterator';
 
-describe.only('sagaIterator', () => {
+describe('sagaIterator', () => {
     it('should return a iterateSaga function', () => {
         expect(sagaIterator()).toBeA('function');
     });

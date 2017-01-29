@@ -7,6 +7,6 @@ export default (emitter, id) => (effect, iterateSaga) => {
     }
 
     return promise
-    .then(result => iterateSaga(result))
+    .then(iterateSaga)
     .catch(error => iterateSaga(error, true));
 };

@@ -9,6 +9,7 @@ import {
     put,
     take,
     takeEvery,
+    takeLatest,
     cancel,
 } from '../src/effects';
 
@@ -212,6 +213,37 @@ describe('sg', () => {
                     ['arg1', 'arg2', '5'],
                     ['arg1', 'arg2', '6'],
                     ['arg1', 'arg2', '7'],
+                    ['arg1', 'arg2', '8'],
+                ]);
+                done();
+            })
+            .catch(done);
+        });
+    });
+
+    describe('takeLatest', () => {
+        it('should call given generator on last taken effect', (done) => {
+            const genCall = [];
+            function* gen(...args) {
+                yield call(() => new Promise(resolve => setTimeout(resolve, 10)));
+                yield call(genCall.push.bind(genCall), args);
+            }
+
+            sg(function* () {
+                const task = yield takeLatest('event', gen, 'arg1', 'arg2');
+                yield put('event', '1');
+                yield put('event', '2');
+                yield put('event', '3');
+                yield put('event', '4');
+                yield put('event', '5');
+                yield put('event', '6');
+                yield put('event', '7');
+                yield put('event', '8');
+                yield call(() => new Promise(resolve => setTimeout(resolve, 100)));
+                yield cancel(task);
+            })()
+            .then(() => {
+                expect(genCall).toEqual([
                     ['arg1', 'arg2', '8'],
                 ]);
                 done();

@@ -20,7 +20,6 @@ export default function newTask(generator, emitter, parentId = null) {
         }
 
         const iterator = generator(...args);
-        const next = iterator.next();
 
         const forkedPromises = [];
 
@@ -65,8 +64,9 @@ export default function newTask(generator, emitter, parentId = null) {
             }
         };
 
-        function loop({ done, value }) {
+        function loop(data, isError) {
             try {
+                const { done, value } = isError ? iterator.throw(data) : iterator.next(data);
                 if (iterator.cancelled) {
                     return;
                 }
@@ -78,18 +78,17 @@ export default function newTask(generator, emitter, parentId = null) {
                     .catch(abortSaga);
                     return;
                 }
-                const effect = value;
 
-                handleEffect(effect, emitter, id)
-                .then(result => loop(iterator.next(result)))
-                .catch(error => loop(iterator.throw(error)))
+                handleEffect(value, emitter, id)
+                .then(result => loop(result))
+                .catch(error => loop(error, true))
                 .catch(abortSaga);
             } catch (error) {
                 abortSaga(error);
             }
         }
 
-        loop(next);
+        loop();
 
         const task = {
             id,

@@ -62,12 +62,18 @@ describe('sg', () => {
         .catch(done);
     });
 
-    it('should throw error directly thrown by generator', () => {
+    it('should reject with error directly thrown by generator', (done) => {
         function* bomb() {
             throw new Error('Boom');
-        }
-
-        expect(() => sg(bomb)()).toThrow('Boom');
+        }sg(bomb)()
+        .then(() => {
+            done(new Error('it should have thrown an error'));
+        })
+        .catch((error) => {
+            expect(error.message).toBe('Boom');
+            done();
+        })
+        .catch(done);
     });
 
     it('should handle array of effect', (done) => {

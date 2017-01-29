@@ -67,6 +67,9 @@ export default function newTask(generator, emitter, parentId = null) {
 
         function loop({ done, value }) {
             try {
+                if (iterator.cancelled) {
+                    return;
+                }
                 if (done) {
                     Promise.all(forkedPromises)
                     .then(() => {
@@ -90,7 +93,10 @@ export default function newTask(generator, emitter, parentId = null) {
 
         const task = {
             id,
-            cancel: () => resolve(),
+            cancel: () => {
+                resolve();
+                iterator.cancelled = true;
+            },
             done: () => promise,
         };
 

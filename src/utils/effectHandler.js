@@ -1,7 +1,12 @@
-export default (emitter, id) => (effect) => {
+export default (emitter, id) => (effect, iterateSaga) => {
+    let promise;
     if (Array.isArray(effect)) {
-        return Promise.all(effect.map(e => e.handle(e.args, emitter, id)));
+        promise = Promise.all(effect.map(e => e.handle(e.args, emitter, id)));
+    } else {
+        promise = effect.handle(effect.args, emitter, id);
     }
 
-    return effect.handle(effect.args, emitter, id);
+    return promise
+    .then(result => iterateSaga(result))
+    .catch(error => iterateSaga(error, true));
 };

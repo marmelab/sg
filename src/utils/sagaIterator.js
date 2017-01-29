@@ -1,18 +1,15 @@
-export default (iterator, resolveSaga, abortSaga, handleEffect) => function iterateSaga(data, isError) {
+export default (iterator, resolveSaga, abortSaga, handleEffect) => async function iterateSaga(data, isError) {
     try {
-        const { done, value } = isError ? iterator.throw(data) : iterator.next(data);
         if (iterator.cancelled) {
             return;
         }
+        const { done, value } = isError ? iterator.throw(data) : iterator.next(data);
         if (done) {
             resolveSaga(value);
             return;
         }
 
-        handleEffect(value)
-        .then(result => iterateSaga(result))
-        .catch(error => iterateSaga(error, true))
-        .catch(abortSaga);
+        await handleEffect(value, iterateSaga);
     } catch (error) {
         abortSaga(error);
     }

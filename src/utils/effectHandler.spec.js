@@ -7,13 +7,14 @@ describe('effectHandler', () => {
         let handleCall;
         const handle = (...args) => {
             handleCall = args;
+            return Promise.resolve();
         };
         const effect = {
             handle,
             args: ['arg1', 'arg2'],
         };
 
-        effectHandler('emitter', 'id')(effect);
+        effectHandler('emitter', 'id')(effect, () => Promise.resolve());
 
         expect(handleCall).toEqual([['arg1', 'arg2'], 'emitter', 'id']);
     });

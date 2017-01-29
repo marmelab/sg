@@ -3,6 +3,7 @@ import SgEmitter from './SgEmitter';
 import isGenerator from './isGenerator';
 import deferred from './deferred';
 import effectHandler from './effectHandler';
+import sagaIterator from './sagaIterator';
 
 export default function newTask(generator, emitter, parentId = null) {
     const id = uuid();
@@ -73,27 +74,9 @@ export default function newTask(generator, emitter, parentId = null) {
 
         const handleEffect = effectHandler(emitter, id);
 
-        function loop(data, isError) {
-            try {
-                const { done, value } = isError ? iterator.throw(data) : iterator.next(data);
-                if (iterator.cancelled) {
-                    return;
-                }
-                if (done) {
-                    resolveSaga(value);
-                    return;
-                }
+        const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, handleEffect);
 
-                handleEffect(value)
-                .then(result => loop(result))
-                .catch(error => loop(error, true))
-                .catch(abortSaga);
-            } catch (error) {
-                abortSaga(error);
-            }
-        }
-
-        loop();
+        iterateSaga();
 
         const task = {
             id,

@@ -1,10 +1,17 @@
 import expect from 'expect';
 import { handleCancelEffect } from './cancel';
 
+
 describe('handleCancelEffect', () => {
     it('should resolve and call task and emit the result as cancel', async () => {
         let emitCall;
-        const task = () => 'promise';
+        let cancelCall;
+        const task = {
+            id: 'id',
+            cancel: (...args) => {
+                cancelCall = args;
+            },
+        };
         const emitter = {
             emit: (...args) => {
                 emitCall = args;
@@ -12,12 +19,18 @@ describe('handleCancelEffect', () => {
         };
         await handleCancelEffect([task], emitter);
 
-        expect(emitCall).toEqual(['cancel', 'promise']);
+        expect(cancelCall).toEqual([]);
+
+        expect(emitCall).toEqual(['cancel', {
+            target: 'id',
+        }]);
     });
 
     it('should reject if task thrown an error', (done) => {
-        const task = () => {
-            throw new Error('Boom');
+        const task = {
+            cancel: () => {
+                throw new Error('Boom');
+            },
         };
         const emitter = {
             emit: () => {},

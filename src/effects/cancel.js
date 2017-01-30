@@ -3,8 +3,10 @@ import createEffect from './createEffect';
 export const handleCancelEffect = ([task], emitter) =>
 new Promise((resolve, reject) => {
     try {
-        const promise = task();
-        emitter.emit('cancel', promise);
+        task.cancel();
+        emitter.emit('cancel', {
+            target: task.id,
+        });
 
         resolve();
     } catch (error) {

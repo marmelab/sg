@@ -1,18 +1,16 @@
-import sg from '../sg';
+import newTask from '../utils/newTask';
 import createEffect from './createEffect';
 
-export const handleForkEffectFactory = sgImpl => ([callable, ...args], emitter, id) =>
+export const handleForkEffectFactory = newTaskImpl => ([callable, ...args], emitter, id) =>
 new Promise((resolve, reject) => {
     try {
-        const promise = sgImpl(callable, emitter, id)(...args);
-        promise.parentId = id;
-        emitter.emit('fork', promise);
-        resolve(() => promise);
+        const task = newTaskImpl(callable, emitter, id)(...args);
+        resolve(task);
     } catch (error) {
         reject(error);
     }
 });
 
-export const handleForkEffect = handleForkEffectFactory(sg);
+export const handleForkEffect = handleForkEffectFactory(newTask);
 
 export default createEffect('fork', handleForkEffect);

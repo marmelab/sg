@@ -24,15 +24,15 @@ describe('SgEmitter', () => {
     });
 
     describe('take', () => {
-        it('should resolve to sgEmitter[puts][type_id] if it exists and delete it', (done) => {
-            sgEmitter[puts].type_id = 'event value';
+        it('should resolve to first value in sgEmitter[puts][type_id] if it exists and remove it', (done) => {
+            sgEmitter[puts].type_id = ['event value', 'other event value'];
             const takePromise = sgEmitter.take('id', 'type');
             expect(sgEmitter.listeners('event').length).toBe(0);
             expect(sgEmitter[takes]).toEqual([]);
 
             takePromise.then((result) => {
                 expect(result).toBe('event value');
-                expect(sgEmitter[puts].type_id).toBe(undefined);
+                expect(sgEmitter[puts].type_id).toEqual(['other event value']);
                 done();
             })
             .catch(done);
@@ -71,7 +71,7 @@ describe('SgEmitter', () => {
             sgEmitter.on('event', (payload) => {
                 try {
                     expect(payload).toBe(payload);
-                    expect(sgEmitter[puts]).toEqual({ event_mainId: 'payload' });
+                    expect(sgEmitter[puts]).toEqual({ event_mainId: ['payload'] });
                     done();
                 } catch (error) {
                     done(error);
@@ -84,8 +84,8 @@ describe('SgEmitter', () => {
             sgEmitter[tasks] = ['task_id1', 'task_id2'];
             sgEmitter.put('id', 'event', 'payload');
             expect(sgEmitter[puts]).toEqual({
-                event_task_id1: 'payload',
-                event_task_id2: 'payload',
+                event_task_id1: ['payload'],
+                event_task_id2: ['payload'],
             });
         });
 
@@ -93,7 +93,7 @@ describe('SgEmitter', () => {
             sgEmitter[tasks] = ['current_task_id', 'other_task_id'];
             sgEmitter.put('current_task_id', 'event', 'payload');
             expect(sgEmitter[puts]).toEqual({
-                event_other_task_id: 'payload',
+                event_other_task_id: ['payload'],
             });
         });
 
@@ -102,7 +102,7 @@ describe('SgEmitter', () => {
             sgEmitter[takes] = ['taken_task_id'];
             sgEmitter.put('current_task_id', 'event', 'payload');
             expect(sgEmitter[puts]).toEqual({
-                event_other_task_id: 'payload',
+                event_other_task_id: ['payload'],
             });
         });
     });

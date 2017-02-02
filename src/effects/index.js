@@ -9,3 +9,4 @@ export { default as spawn } from './spawn';
 export { default as take } from './take';
 export { default as takeEvery } from './takeEvery';
 export { default as thunk } from './thunk';
+export { default as takeLatest } from './takeLatest';

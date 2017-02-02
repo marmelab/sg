@@ -21,9 +21,8 @@ export default class SgEmitter extends EventEmitter {
         return new Promise((resolve, reject) => {
             try {
                 const key = `${type}_${id}`;
-                const event = this[puts][key];
+                const event = this[puts][key] && this[puts][key].shift();
                 if (event) {
-                    delete this[puts][key];
                     resolve(event);
                     return;
                 }
@@ -44,7 +43,8 @@ export default class SgEmitter extends EventEmitter {
         .filter(taskId => taskId !== id && this[takes].indexOf(taskId) === -1)
         .map(taskId => `${type}_${taskId}`)
         .forEach((key) => {
-            this[puts][key] = payload;
+            this[puts][key] = this[puts][key] || [];
+            this[puts][key].push(payload);
         });
         this.emit(type, payload);
     }

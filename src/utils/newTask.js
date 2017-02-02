@@ -2,7 +2,8 @@ import uuid from 'uuid';
 import SgEmitter from './SgEmitter';
 import isGenerator from './isGenerator';
 import deferred from './deferred';
-import handleEffect from './handleEffect';
+import effectHandler from './effectHandler';
+import sagaIterator from './sagaIterator';
 
 export default function newTask(generator, emitter, parentId = null) {
     const id = uuid();
@@ -20,7 +21,6 @@ export default function newTask(generator, emitter, parentId = null) {
         }
 
         const iterator = generator(...args);
-        const next = iterator.next();
 
         const forkedPromises = [];
 
@@ -65,31 +65,18 @@ export default function newTask(generator, emitter, parentId = null) {
             }
         };
 
-        function loop({ done, value }) {
-            try {
-                if (iterator.cancelled) {
-                    return;
-                }
-                if (done) {
-                    Promise.all(forkedPromises)
-                    .then(() => {
-                        resolve(value);
-                    })
-                    .catch(abortSaga);
-                    return;
-                }
-                const effect = value;
+        const resolveSaga = value =>
+            Promise.all(forkedPromises)
+            .then(() => {
+                resolve(value);
+            })
+            .catch(abortSaga);
 
-                handleEffect(effect, emitter, id)
-                .then(result => loop(iterator.next(result)))
-                .catch(error => loop(iterator.throw(error)))
-                .catch(abortSaga);
-            } catch (error) {
-                abortSaga(error);
-            }
-        }
+        const handleEffect = effectHandler(emitter, id);
 
-        loop(next);
+        const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, handleEffect);
+
+        iterateSaga();
 
         const task = {
             id,

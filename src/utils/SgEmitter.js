@@ -1,4 +1,4 @@
-import without from 'lodash/without';
+import without from 'lodash.without';
 import EventEmitter from 'events';
 
 export const puts = Symbol('puts');

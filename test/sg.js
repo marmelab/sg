@@ -11,6 +11,8 @@ import {
     takeEvery,
     takeLatest,
     cancel,
+    delay,
+    race,
 } from '../src/effects';
 
 describe('sg', () => {
@@ -26,7 +28,6 @@ describe('sg', () => {
             try {
                 yield call(boom);
             } catch (error) {
-                console.log(error);
             }
 
             const d = yield call(multiply, c, a);
@@ -252,6 +253,99 @@ describe('sg', () => {
                 expect(genCall).toEqual([
                     ['arg1', 'arg2', '8'],
                 ]);
+                done();
+            })
+            .catch(done);
+        });
+    });
+
+    describe('race', () => {
+        it('should call both effect at once and return the result of the first', (done) => {
+            let firstEffectSagaCall = false;
+            let lastEffectSagaCall = false;
+            const firstEffectSaga = function* () {
+                firstEffectSagaCall = true;
+                yield delay(100);
+                return 'firstEffectResult';
+            };
+            const lastEffectSaga = function* () {
+                lastEffectSagaCall = true;
+                yield delay(200);
+                return 'lastEffectResult';
+            };
+            sg(function* () {
+                return yield race({
+                    firstEffect: call(firstEffectSaga),
+                    lastEffect: call(lastEffectSaga),
+                });
+            })()
+            .then((result) => {
+                expect(result).toEqual({
+                    firstEffect: 'firstEffectResult',
+                });
+                expect(firstEffectSagaCall).toBe(true);
+                expect(lastEffectSagaCall).toBe(true);
+                done();
+            })
+            .catch(done);
+        });
+
+        it('should call both effect at once and return the result of the first', (done) => {
+            let firstEffectSagaCall = false;
+            let lastEffectSagaCall = false;
+            const firstEffectSaga = function* () {
+                firstEffectSagaCall = true;
+                yield delay(200);
+                return 'firstEffectResult';
+            };
+            const lastEffectSaga = function* () {
+                lastEffectSagaCall = true;
+                yield delay(1000);
+                throw new Error('error from last effect');
+            };
+            sg(function* () {
+                return yield race({
+                    firstEffect: call(firstEffectSaga),
+                    lastEffect: call(lastEffectSaga),
+                });
+            })()
+            .then((result) => {
+                expect(result).toEqual({
+                    firstEffect: 'firstEffectResult',
+                });
+                expect(firstEffectSagaCall).toBe(true);
+                expect(lastEffectSagaCall).toBe(true);
+                done();
+            })
+            .catch(done);
+        });
+
+        it('should call both effect at once and throw the error of the first to throw', (done) => {
+            let firstEffectSagaCall = false;
+            let lastEffectSagaCall = false;
+            const firstEffectSaga = function* () {
+                firstEffectSagaCall = true;
+                yield delay(200);
+                throw new Error('firstEffect error');
+            };
+            const lastEffectSaga = function* () {
+                lastEffectSagaCall = true;
+                yield delay(1000);
+                return 'lastEffectResult';
+            };
+            sg(function* () {
+                return yield race({
+                    firstEffect: call(firstEffectSaga),
+                    lastEffect: call(lastEffectSaga),
+                });
+            })()
+            .then(() => {
+                throw new Error('saga should have been rejected with firstEffect error');
+            })
+            .catch((error) => {
+                expect(error.message).toBe('firstEffect error');
+                expect(firstEffectSagaCall).toBe(true);
+                expect(lastEffectSagaCall).toBe(true);
                 done();
             })
             .catch(done);

@@ -10,3 +10,5 @@ export { default as take } from './take';
 export { default as takeEvery } from './takeEvery';
 export { default as thunk } from './thunk';
 export { default as takeLatest } from './takeLatest';
+export { default as delay } from './delay';
+export { default as race } from './race';

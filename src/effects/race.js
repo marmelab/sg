@@ -1,14 +1,14 @@
 import createEffect from './createEffect';
 import newTask from '../utils/newTask';
 
-const getEffectArray = (effects) => {
+export const getEffectArray = (effects) => {
     if (Array.isArray(effects)) {
         throw new Error('race take a literal received an array');
     }
 
     const keys = Object.keys(effects);
     if (effects.handle || keys.length === 1) {
-        throw new Error('Trying to race a single effect');
+        throw new Error('Cannot race a single effect');
     }
 
     return {
@@ -17,30 +17,53 @@ const getEffectArray = (effects) => {
     };
 };
 
-const cancelTasks = tasks =>
-    tasks.forEach(task => task.cancel());
+export const cancelTasks = (tasks, except) =>
+    tasks
+        .filter((_, i) => i !== except)
+        .forEach(task => task.cancel());
 
-export const handleRaceEffect = ([effects], emitter, id) =>
-    new Promise((resolve, reject) => {
-        const { effectArray, keys } = getEffectArray(effects);
-        const tasks = effectArray.map(effect => newTask(
-            function* () { return yield effect; },
-            emitter,
-            id,
-        )());
-        const promises = tasks.map((task, index) => task.done().then(
-            result => ({ result, index }),
-            error => ({ error, index }),
-        ));
+export const wrapInGenerator = effect =>
+    function* () { return yield effect; };
 
-        Promise.race(promises).then(({ result, error, index }) => {
-            if (error) {
-                reject(error);
-            }
-            resolve({ [keys[index]]: result });
-            const tasksToCancel = tasks.filter((_, i) => i !== index);
-            cancelTasks(tasksToCancel);
-        });
-    });
+export const createTasksFromEffects = (newTaskImpl, wrapInGeneratorImpl) => (effects, emitter, id) =>
+    effects
+    .map(wrapInGeneratorImpl)
+    .map(gen => newTaskImpl(
+        gen,
+        emitter,
+        id,
+    ))
+    .map(task => task());
 
-export default createEffect('put', handleRaceEffect);
+export const executeOneTask = (task, index) => task.done().then(
+    result => ({ result, index }),
+    error => ({ error, index }),
+);
+
+export const executeTasks = executeTasksImpl => tasks =>
+    Promise.race(tasks.map(executeTasksImpl));
+
+export const handleRaceEffect = (
+    getEffectArrayImpl,
+    createTasksFromEffectsImpl,
+    executeTasksImpl,
+    cancelTasksImpl
+) => async ([effects], emitter, id) => {
+    const { effectArray, keys } = getEffectArrayImpl(effects);
+    const tasks = createTasksFromEffectsImpl(effectArray, emitter, id);
+
+    const { result, error, index } = await executeTasksImpl(tasks);
+    cancelTasksImpl(tasks, index);
+    if (error) {
+        throw error;
+    }
+
+    return { [keys[index]]: result };
+};
+
+export default createEffect('put', handleRaceEffect(
+    getEffectArray,
+    createTasksFromEffects(newTask, wrapInGenerator),
+    executeTasks(executeOneTask),
+    cancelTasks
+));

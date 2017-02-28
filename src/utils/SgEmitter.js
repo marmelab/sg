@@ -5,16 +5,24 @@ export const puts = Symbol('puts');
 export const tasks = Symbol('tasks');
 export const takes = Symbol('takes');
 
-export default class SgEmitter extends EventEmitter {
-    constructor(mainId) {
-        super();
+export default class SgEmitter {
+    constructor(mainId, eventEmitter = new EventEmitter()) {
+        if (eventEmitter instanceof SgEmitter) {
+            return eventEmitter;
+        }
         this[puts] = {};
         this[tasks] = [mainId];
         this[takes] = [];
+        this.on = eventEmitter.on.bind(eventEmitter);
+        this.once = eventEmitter.once.bind(eventEmitter);
+        this.emit = eventEmitter.emit.bind(eventEmitter);
+        this.listeners = eventEmitter.listeners.bind(eventEmitter);
         this.on('newTask', ({ id }) => this[tasks].push(id));
         this.on('cancel', ({ target }) => {
             this[tasks] = without(this[tasks], target);
         });
+
+        return this;
     }
 
     take(id, type) {

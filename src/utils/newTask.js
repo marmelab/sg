@@ -5,11 +5,10 @@ import deferred from './deferred';
 import effectHandler from './effectHandler';
 import sagaIterator from './sagaIterator';
 
+
 export default function newTask(generator, emitter, parentId = null) {
     const id = uuid();
-    if (!emitter) {
-        emitter = new SgEmitter(id);
-    }
+    const sgEmitter = new SgEmitter(id, emitter);
     if (!isGenerator(generator)) {
         throw new Error('sg need a generator function');
     }
@@ -17,39 +16,39 @@ export default function newTask(generator, emitter, parentId = null) {
         const { promise, resolve, reject } = deferred();
 
         if (parentId) {
-            emitter.emit('newTask', { target: parentId, id, promise });
+            sgEmitter.emit('newTask', { target: parentId, id, promise });
         }
 
         const iterator = generator(...args);
 
         const forkedPromises = [];
 
-        emitter.on('error', (payload) => {
+        sgEmitter.on('error', (payload) => {
             if (payload.target !== id) {
                 return;
             }
             reject(payload.error);
             if (parentId) {
-                emitter.emit('error', {
+                sgEmitter.emit('error', {
                     ...payload,
                     target: parentId,
                 });
             }
         });
 
-        emitter.on('newTask', (payload) => {
+        sgEmitter.on('newTask', (payload) => {
             if (payload.target !== id) {
                 return;
             }
             forkedPromises.push(payload.promise);
         });
 
-        emitter.on('cancel', (payload) => {
+        sgEmitter.on('cancel', (payload) => {
             if (payload.target !== parentId) {
                 return;
             }
             resolve();
-            emitter.emit('cancel', {
+            sgEmitter.emit('cancel', {
                 ...payload,
                 target: id,
             }); // tell saga children to cancel
@@ -58,7 +57,7 @@ export default function newTask(generator, emitter, parentId = null) {
         const abortSaga = (error) => {
             reject(error);
             if (parentId) {
-                emitter.emit('error', {
+                sgEmitter.emit('error', {
                     error,
                     target: parentId,
                 });
@@ -72,7 +71,7 @@ export default function newTask(generator, emitter, parentId = null) {
             })
             .catch(abortSaga);
 
-        const handleEffect = effectHandler(emitter, id);
+        const handleEffect = effectHandler(sgEmitter, id);
 
         const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, handleEffect);
 

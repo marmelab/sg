@@ -3,7 +3,7 @@
 Utility to handle side effects with generators. Inspired by [redux-saga](https://github.com/yelouafi/redux-saga) and [co](https://github.com/tj/co).
 
 An effect is an object that describe a task, but do not execute it.
-This allow to separate the tasks scheduling from the tasks themself.
+This allows to separate the tasks scheduling from the tasks themself.
 
 ## install
 
@@ -102,7 +102,7 @@ yield put('my event', { payload: data });
 
 ### take
 
-Wait for event sent by put and return its payload
+Waits for event sent by put and return its payload
 
 ```js
 const payload = yield take('my event'); // { payload: data }
@@ -110,7 +110,7 @@ const payload = yield take('my event'); // { payload: data }
 
 ### spawn
 
-Launch another sg generator, but do not wait for it to end, returning a [task](#task) object.
+Launches another sg generator, but do not wait for it to end, returning a [task](#task) object.
 
 ```js
 const task = yield spawn(sgGenerator);
@@ -119,7 +119,7 @@ yield task.done(); //resolve when spawned task resolve
 
 ### fork
 
-Same as spawn, but error from the forked generator will bubble up to the parent generator making him fail. Also the parent generator will wait for the forked generator to end before resolving.
+Same as spawn, but errors from the forked generator will bubble up to the parent generator making it fail. Also the parent generator will wait for the forked generator to end before resolving.
 
 ```js
 const task = yield fork(sgGenerator);
@@ -128,11 +128,11 @@ yield task.done(); // resolve when spawned task resolve
 
 ### cancel
 
-take a task returned by fork or spawn, and cancel it ending it and its children.
+takes a task returned by fork or spawn, and cancels it, ending it and its children.
 
 ### race
 
-yield several effect simultaneously in a literal and return only the result of the first completed effect, or its error if it failed.
+yields several effect simultaneously in a literal and returns only the result of the first completed effect, or its error if it failed.
 
 ```js
 const { user, cancel } = yield race({
@@ -143,7 +143,7 @@ const { user, cancel } = yield race({
 
 ### takeEvery
 
-fork given generator each time given event is triggered.
+forks given generator each time given event is triggered.
 It is the same as forking the following generator:
 
 ```js
@@ -157,10 +157,10 @@ function* takeEverySaga(type, gen, ...args) {
 
 ### task
 
-Object returned by fork and spawn possess a done and cancel method.
+Object returned by fork and spawn. It has a done and cancel method.
 
-- done: return a promise, which resole with task result or reject with task error.
-- cancel: Cancel the task if it is still running. This in turn will also cancel all children of this task.
+- done: returns a promise, which resolves with task result or rejects with task error.
+- cancel: Cancels the task if it is still running. This in turn will also cancel all children of this task.
 
 ### Adding your own custom effects with createEffect
 
@@ -170,7 +170,7 @@ It takes a type, and an handler.
 - Type:
     A string with the effect name
 - Handler:
-    a function returning a promise and that receive three arguments:
+    a function returning a promise and that receives three arguments:
     - effect parameters:
         an array with the list of argument passed to the effect function
     - emitter

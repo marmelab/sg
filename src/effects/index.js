@@ -12,3 +12,4 @@ export { default as thunk } from './thunk';
 export { default as takeLatest } from './takeLatest';
 export { default as delay } from './delay';
 export { default as race } from './race';
+export { default as join } from './join';

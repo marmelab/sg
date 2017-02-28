@@ -6,6 +6,7 @@ import {
     call,
     cps,
     fork,
+    spawn,
     put,
     take,
     takeEvery,
@@ -13,6 +14,7 @@ import {
     cancel,
     delay,
     race,
+    join,
 } from '../src/effects';
 
 describe('sg', () => {
@@ -346,6 +348,57 @@ describe('sg', () => {
                 expect(error.message).toBe('firstEffect error');
                 expect(firstEffectSagaCall).toBe(true);
                 expect(lastEffectSagaCall).toBe(true);
+                done();
+            })
+            .catch(done);
+        });
+    });
+
+    describe('join', () => {
+        it('should wait for spawned task to end and tretrieve its result before resuming', (done) => {
+            const spawnedGenCall = [];
+            const spawnedGen = function* (...args) {
+                yield call(spawnedGenCall.push.bind(spawnedGenCall), args);
+
+                return 'spawnedResult';
+            };
+
+            const gen = function* () {
+                const task = yield spawn(spawnedGen, 'arg');
+
+                return yield join(task);
+            };
+
+            sg(gen)()
+            .then((result) => {
+                expect(result).toBe('spawnedResult');
+                expect(spawnedGenCall).toEqual([['arg']]);
+                done();
+            })
+            .catch(done);
+        });
+
+        it('should wait for spawned task to end before resuming and throw its error', (done) => {
+            const spawnedGenCall = [];
+            const spawnedGen = function* (...args) {
+                yield call(spawnedGenCall.push.bind(spawnedGenCall), args);
+
+                throw new Error('spawnedError');
+            };
+
+            const gen = function* () {
+                const task = yield spawn(spawnedGen, 'arg');
+
+                return yield join(task);
+            };
+
+            sg(gen)()
+            .then(() => {
+                throw new Error('gen promise should have been rejected');
+            })
+            .catch((error) => {
+                expect(error.message).toBe('spawnedError');
+                expect(spawnedGenCall).toEqual([['arg']]);
                 done();
             })
             .catch(done);

@@ -114,7 +114,6 @@ Launches another sg generator, but do not wait for it to end, returning a [task]
 
 ```js
 const task = yield spawn(sgGenerator);
-yield task.done(); //resolve when spawned task resolve
 ```
 
 ### fork
@@ -123,12 +122,23 @@ Same as spawn, but errors from the forked generator will bubble up to the parent
 
 ```js
 const task = yield fork(sgGenerator);
-yield task.done(); // resolve when spawned task resolve
 ```
 
 ### cancel
 
 takes a task returned by fork or spawn, and cancels it, ending it and its children.
+
+```js
+yield cancel(task);
+```
+
+### join
+
+takes a task returned by fork or spawn, and joins it, waiting for the task to end or throw an error.
+
+```js
+const result = yield join(task);
+```
 
 ### race
 

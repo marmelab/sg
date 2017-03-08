@@ -216,7 +216,7 @@ During execution handleSql will get called like so
 handleSql(['INSERT ... INTO user', userData]);
 ```
 
-## injecting custom eventEmitter
+## Injecting Custom EventEmitter
 
 Sg use an eventEmitter internally to handle take and put effects.
 It is possible to pass your own eventEmitter to sg. This allows to take events from this event emitter.

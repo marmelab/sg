@@ -219,5 +219,5 @@ handleSql(['INSERT ... INTO user', userData]);
 ## injecting custom eventEmitter
 
 Sg use an eventEmitter internally to handle take and put effects.
-It is possible to pass your own eventEmitter to sg. This allows to take event from this event emitter.
+It is possible to pass your own eventEmitter to sg. This allows to take events from this event emitter.
 Your event emitter must extends node event emitter.

@@ -355,7 +355,7 @@ describe('sg', () => {
     });
 
     describe('join', () => {
-        it('should wait for spawned task to end and tretrieve its result before resuming', (done) => {
+        it('should wait for spawned task to end and retrieve its result before resuming', (done) => {
             const spawnedGenCall = [];
             const spawnedGen = function* (...args) {
                 yield call(spawnedGenCall.push.bind(spawnedGenCall), args);

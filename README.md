@@ -215,3 +215,9 @@ During execution handleSql will get called like so
 ```js
 handleSql(['INSERT ... INTO user', userData]);
 ```
+
+## injecting custom eventEmitter
+
+Sg use an eventEmitter internally to handle take and put effect.
+It is possible to pass your own eventEmitter to sg. This allow to take event from this event emitter.
+Your event emitter must extends node event emitter.

@@ -5,7 +5,7 @@
   "main": "dist/sg.js",
   "scripts": {
     "prepublish": "BABEL_ENV=dist node_modules/babel-cli/bin/babel.js src --out-dir dist --ignore spec.js",
-    "test": "BABEL_ENV=dev node_modules/mocha/bin/mocha ./test/ ./**/*.spec.js"
+    "test": "BABEL_ENV=dev node_modules/mocha/bin/mocha ./test/ ./src/**/*.spec.js"
   },
   "author": "",
   "license": "MIT",

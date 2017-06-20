@@ -1,4 +1,4 @@
-import createEffect from './createEffect';
+import createEffect from '../createEffect';
 
 export const handleCallEffect = ([task]) => task.done();
 

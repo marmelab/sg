@@ -1,5 +1,5 @@
-import newTask from '../utils/newTask';
-import createEffect from './createEffect';
+import newTask from '../../utils/newTask';
+import createEffect from '../createEffect';
 
 export const handleForkEffectFactory = newTaskImpl => ([callable, ...args], emitter, id) =>
 new Promise((resolve, reject) => {

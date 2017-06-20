@@ -5,6 +5,13 @@ import sg from '../src/sg';
 import {
     call,
     cps,
+    delay,
+    events,
+} from '../src/effects';
+
+const {
+    race,
+    join,
     fork,
     spawn,
     put,
@@ -12,10 +19,7 @@ import {
     takeEvery,
     takeLatest,
     cancel,
-    delay,
-    race,
-    join,
-} from '../src/effects';
+} = events;
 
 describe('sg', () => {
     it('should execute generator', (done) => {

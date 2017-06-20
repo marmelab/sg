@@ -1,4 +1,4 @@
-import createEffect from './createEffect';
+import createEffect from '../createEffect';
 import take from './take';
 import cancel from './cancel';
 import fork, { handleForkEffect } from './fork';

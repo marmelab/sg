@@ -1,5 +1,5 @@
-import newTask from '../utils/newTask';
-import createEffect from './createEffect';
+import newTask from '../../utils/newTask';
+import createEffect from '../createEffect';
 
 export const handleSpawnEffect = newTaskImpl => ([callable, ...args], emitter) =>
     new Promise((resolve, reject) => {

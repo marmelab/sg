@@ -1,4 +1,4 @@
-import createEffect from './createEffect';
+import createEffect from '../createEffect';
 
 export const handleCancelEffect = ([task], emitter) =>
 new Promise((resolve, reject) => {

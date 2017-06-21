@@ -81,7 +81,7 @@ describe('sagaIterator', () => {
             expect(handleEffect).toNotHaveBeenCalled();
         });
 
-        it('should call handleEffect with value and iterateSaga if iterator.next done is false', () => {
+        it('should call handleEffect with value if iterator.next done is false', () => {
             const iterator = {
                 cancelled: false,
                 next: expect.createSpy().andReturn({ done: false, value: 'next value' }),
@@ -97,7 +97,7 @@ describe('sagaIterator', () => {
             expect(iterator.throw).toNotHaveBeenCalled();
             expect(resolveSaga).toNotHaveBeenCalled();
             expect(abortSaga).toNotHaveBeenCalled();
-            expect(handleEffect).toHaveBeenCalledWith('next value', iterateSaga);
+            expect(handleEffect).toHaveBeenCalledWith('next value');
         });
 
         it('should call iterator.throw with data if isError is true', () => {
@@ -154,11 +154,20 @@ describe('sagaIterator', () => {
             expect(handleEffect).toNotHaveBeenCalled();
         });
 
-        it('should call handleEffect with value and iterateSaga if iterator.throw done is false', () => {
+        it('should call handleEffect with value if iterator.throw done is false', () => {
+            let alreadyCalled = false;
             const iterator = {
                 cancelled: false,
                 next: expect.createSpy(),
-                throw: expect.createSpy().andReturn({ done: false, value: 'next value' }),
+                throw: expect.createSpy().andCall(() => {
+                    if (alreadyCalled) {
+                        return {
+                            done: true,
+                        };
+                    }
+                    alreadyCalled = true;
+                    return { done: false, value: 'next value' };
+                }),
             };
             const resolveSaga = expect.createSpy();
             const abortSaga = expect.createSpy();
@@ -170,7 +179,7 @@ describe('sagaIterator', () => {
             expect(iterator.next).toNotHaveBeenCalled();
             expect(resolveSaga).toNotHaveBeenCalled();
             expect(abortSaga).toNotHaveBeenCalled();
-            expect(handleEffect).toHaveBeenCalledWith('next value', iterateSaga);
+            expect(handleEffect).toHaveBeenCalledWith('next value');
         });
     });
 });

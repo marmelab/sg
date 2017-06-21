@@ -25,10 +25,6 @@ export const getEffectPromise = (effect, ctx) => {
     return handleEffectLitteral(effect, ctx);
 };
 
-export default ctx => (effect, iterateSaga) => {
-    const promise = getEffectPromise(effect, ctx);
+export default ctx => (effect) =>
+    getEffectPromise(effect, ctx);
 
-    return promise
-        .then(iterateSaga)
-        .catch(error => iterateSaga(error, true));
-};

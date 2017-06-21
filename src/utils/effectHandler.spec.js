@@ -10,9 +10,9 @@ describe('effectHandler', () => {
             args: ['arg1', 'arg2'],
         };
         const iterateSaga = expect.createSpy();
-        await effectHandler('emitter', 'id')(effect, iterateSaga);
+        await effectHandler('ctx')(effect, iterateSaga);
 
-        expect(handle).toHaveBeenCalledWith(['arg1', 'arg2'], 'emitter', 'id');
+        expect(handle).toHaveBeenCalledWith(['arg1', 'arg2'], 'ctx');
         expect(iterateSaga).toHaveBeenCalledWith('effect result');
     });
 
@@ -23,9 +23,9 @@ describe('effectHandler', () => {
             args: ['arg1', 'arg2'],
         };
         const iterateSaga = expect.createSpy();
-        await effectHandler('emitter', 'id')(effect, iterateSaga);
+        await effectHandler('ctx')(effect, iterateSaga);
 
-        expect(handle).toHaveBeenCalledWith(['arg1', 'arg2'], 'emitter', 'id');
+        expect(handle).toHaveBeenCalledWith(['arg1', 'arg2'], 'ctx');
         expect(iterateSaga).toHaveBeenCalledWith('effect error', true);
     });
 
@@ -42,10 +42,10 @@ describe('effectHandler', () => {
             },
         ];
         const iterateSaga = expect.createSpy();
-        await effectHandler('emitter', 'id')(effects, iterateSaga);
+        await effectHandler('ctx')(effects, iterateSaga);
 
-        expect(handle1).toHaveBeenCalledWith(['arg1', 'arg2'], 'emitter', 'id');
-        expect(handle2).toHaveBeenCalledWith(['arg3', 'arg4'], 'emitter', 'id');
+        expect(handle1).toHaveBeenCalledWith(['arg1', 'arg2'], 'ctx');
+        expect(handle2).toHaveBeenCalledWith(['arg3', 'arg4'], 'ctx');
         expect(iterateSaga).toHaveBeenCalledWith(['effect1 result', 'effect2 result']);
     });
 
@@ -63,10 +63,10 @@ describe('effectHandler', () => {
             },
         };
         const iterateSaga = expect.createSpy();
-        await effectHandler('emitter', 'id')(effects, iterateSaga);
+        await effectHandler('ctx')(effects, iterateSaga);
 
-        expect(handle1).toHaveBeenCalledWith(['arg1', 'arg2'], 'emitter', 'id');
-        expect(handle2).toHaveBeenCalledWith(['arg3', 'arg4'], 'emitter', 'id');
+        expect(handle1).toHaveBeenCalledWith(['arg1', 'arg2'], 'ctx');
+        expect(handle2).toHaveBeenCalledWith(['arg3', 'arg4'], 'ctx');
         expect(iterateSaga).toHaveBeenCalledWith({
             effect1: 'effect1 result',
             effect2: 'effect2 result',

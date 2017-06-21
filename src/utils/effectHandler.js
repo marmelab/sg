@@ -1,32 +1,32 @@
 import zipObject from 'lodash.zipobject';
 
-export const handleOneEffect = (effect, emitter, id) =>
-    effect.handle(effect.args, emitter, id);
+export const handleOneEffect = (effect, ctx) =>
+    effect.handle(effect.args, ctx);
 
-export const handleEffectArray = (effects, emitter, id) =>
-    Promise.all(effects.map(effect => handleOneEffect(effect, emitter, id)));
+export const handleEffectArray = (effects, ctx) =>
+    Promise.all(effects.map(effect => handleOneEffect(effect, ctx)));
 
-export const handleEffectLitteral = (effects, emitter, id) => {
+export const handleEffectLitteral = (effects, ctx) => {
     const keys = Object.keys(effects);
     const effectArray = keys.map(key => effects[key]);
 
-    return handleEffectArray(effectArray, emitter, id)
+    return handleEffectArray(effectArray, ctx)
         .then(effectResults => zipObject(keys, effectResults));
 };
 
-export const getEffectPromise = (effect, emitter, id) => {
+export const getEffectPromise = (effect, ctx) => {
     if (effect.handle) {
-        return handleOneEffect(effect, emitter, id);
+        return handleOneEffect(effect, ctx);
     }
     if (Array.isArray(effect)) {
-        return handleEffectArray(effect, emitter, id);
+        return handleEffectArray(effect, ctx);
     }
 
-    return handleEffectLitteral(effect, emitter, id);
+    return handleEffectLitteral(effect, ctx);
 };
 
-export default (emitter, id) => (effect, iterateSaga) => {
-    const promise = getEffectPromise(effect, emitter, id);
+export default ctx => (effect, iterateSaga) => {
+    const promise = getEffectPromise(effect, ctx);
 
     return promise
         .then(iterateSaga)

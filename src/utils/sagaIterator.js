@@ -1,4 +1,6 @@
-export default (iterator, resolveSaga, abortSaga, handleEffect) => async function iterateSaga(data, isError) {
+import handleEffect from './handleEffect';
+
+export const sagaIteratorFactory = handleEffectImpl => (iterator, resolveSaga, abortSaga, ctx) => async function iterateSaga(data, isError) {
     try {
         if (iterator.cancelled) {
             return null;
@@ -9,7 +11,7 @@ export default (iterator, resolveSaga, abortSaga, handleEffect) => async functio
             return null;
         }
         try {
-            const result = await handleEffect(value);
+            const result = await handleEffectImpl(value, ctx);
             return iterateSaga(result);
         } catch (error) {
             return iterateSaga(error, true);
@@ -19,3 +21,5 @@ export default (iterator, resolveSaga, abortSaga, handleEffect) => async functio
         return null;
     }
 };
+
+export default sagaIteratorFactory(handleEffect);

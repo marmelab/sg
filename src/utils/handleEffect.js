@@ -25,6 +25,6 @@ export const getEffectPromise = (effect, ctx) => {
     return handleEffectLitteral(effect, ctx);
 };
 
-export default ctx => (effect) =>
+export default (effect, ctx) =>
     getEffectPromise(effect, ctx);
 

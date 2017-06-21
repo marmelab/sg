@@ -1,8 +1,6 @@
 import uuid from 'uuid';
-import SgEmitter from '../effects/events/SgEmitter';
 import isGenerator from './isGenerator';
 import deferred from './deferred';
-import effectHandler from './effectHandler';
 import sagaIterator from './sagaIterator';
 
 export default function newTask(generator, ctx = {}) {
@@ -27,9 +25,7 @@ export default function newTask(generator, ctx = {}) {
                 })
                 .catch(abortSaga);
 
-        const handleEffect = effectHandler(ctx);
-
-        const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, handleEffect);
+        const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, ctx);
 
         iterateSaga();
 

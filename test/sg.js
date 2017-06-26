@@ -6,20 +6,20 @@ import {
     call,
     cps,
     delay,
-    events,
+    fork,
 } from '../src/effects';
 
-const {
-    race,
-    join,
-    fork,
-    spawn,
-    put,
-    take,
-    takeEvery,
-    takeLatest,
-    cancel,
-} = events;
+// const {
+//     race,
+//     join,
+//     fork,
+//     spawn,
+//     put,
+//     take,
+//     takeEvery,
+//     takeLatest,
+//     cancel,
+// } = events;
 
 describe('sg', () => {
     it('should execute generator', (done) => {
@@ -101,6 +101,49 @@ describe('sg', () => {
             done();
         }).catch((error) => {
             done(error);
+        });
+    });
+
+    describe('fork', () => {
+        it('should wait for fork to finish before finishing saga', (done) => {
+            const fn = expect.createSpy();
+            function* forked() {
+                yield delay(100);
+                yield call(fn);
+            }
+            function* saga() {
+                yield fork(forked);
+            }
+
+            sg(saga)().then(() => {
+                expect(fn).toHaveBeenCalled();
+                done();
+            })
+            .catch(done);
+        });
+
+        it('error from forked should bubble up to saga', (done) => {
+            function* forked() {
+                yield delay(100);
+                throw new Error('Boom');
+            }
+            function* saga() {
+                yield fork(forked);
+
+                while (true) {
+                    yield delay(1);
+                }
+            }
+
+            sg(saga)()
+                .then(() => {
+                    throw new Error('expected error Boom');
+                })
+                .catch((error) => {
+                    expect(error.message).toBe('Boom');
+                    done();
+                })
+                .catch(done);
         });
     });
 

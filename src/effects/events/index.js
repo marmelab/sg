@@ -1,5 +1,4 @@
 export { default as cancel } from './cancel';
-export { default as fork } from './fork';
 export { default as put } from './put';
 export { default as spawn } from './spawn';
 export { default as take } from './take';

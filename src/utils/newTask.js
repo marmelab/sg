@@ -14,6 +14,8 @@ export default function newTask(generator, ctx = {}) {
 
         const forkedPromises = [];
 
+        const waitFor = p => forkedPromises.push(p);
+
         const abortSaga = (error) => {
             reject(error);
         };
@@ -25,18 +27,30 @@ export default function newTask(generator, ctx = {}) {
                 })
                 .catch(abortSaga);
 
-        const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, ctx);
+        const errorHandlers = [];
 
-        iterateSaga();
+        const onError = fn =>
+            errorHandlers.push(fn);
+
+        promise.catch(error => errorHandlers.map(fn => fn(error)));
 
         const task = {
             id,
-            cancel: () => {
-                resolve();
+            waitFor,
+            cancel: (error) => {
+                reject(error);
                 iterator.cancelled = true;
             },
+            onError,
             done: () => promise,
         };
+
+        const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, {
+            ...ctx,
+            task,
+        });
+
+        iterateSaga();
 
         return task;
     };

@@ -7,4 +7,6 @@ export { default as co } from './co';
 export { default as cps } from './cps';
 export { default as delay } from './delay';
 export { default as fork } from './fork';
+export { default as spawn } from './spawn';
+export { default as join } from './join';
 export { default as createEffect } from './createEffect';

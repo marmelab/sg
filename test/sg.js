@@ -7,6 +7,8 @@ import {
     cps,
     delay,
     fork,
+    spawn,
+    join,
 } from '../src/effects';
 
 // const {
@@ -401,7 +403,7 @@ describe('sg', () => {
         });
     });
 
-    describe.skip('join', () => {
+    describe('join', () => {
         it('should wait for spawned task to end and retrieve its result before resuming', (done) => {
             const spawnedGenCall = [];
             const spawnedGen = function* (...args) {

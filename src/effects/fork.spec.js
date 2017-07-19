@@ -23,7 +23,8 @@ describe('handleForkEffectFactory', () => {
         const waitFor = expect.createSpy();
         const cancel = expect.createSpy();
         const onError = expect.createSpy();
-        handleForkEffectFactory(newTaskImpl)('arg1', { task: { waitFor, cancel, onError } })
+        const onCancel = expect.createSpy();
+        handleForkEffectFactory(newTaskImpl)('arg1', { task: { waitFor, cancel, onError, onCancel } })
         .then(result => result.done())
         .then((result) => {
             expect(result).toBe('task object');
@@ -50,21 +51,26 @@ describe('handleForkEffectFactory', () => {
     it('should cancel ctx.task if newTask get rejected', (done) => {
         const newTaskOnError = expect.createSpy();
         const ctxTaskOnError = expect.createSpy();
+        const ctxTaskOnCancel = expect.createSpy();
         newTaskResultFn = expect.createSpy().andReturn({
             done: expect.createSpy(),
             onError: newTaskOnError,
             cancel: 'newTaskCancel',
+            abort: 'newTaskAbort',
         });
         newTaskImpl = expect.createSpy().andReturn(newTaskResultFn);
         handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], { task: {
             cancel: 'ctxTaskCancel',
+            abort: 'ctxTaskAbort',
             waitFor: expect.createSpy(),
             onError: ctxTaskOnError,
+            onCancel: ctxTaskOnCancel,
         } })
             .catch(done)
             .then(() => {
-                expect(newTaskOnError).toHaveBeenCalledWith('ctxTaskCancel');
-                expect(ctxTaskOnError).toHaveBeenCalledWith('newTaskCancel');
+                expect(newTaskOnError).toHaveBeenCalledWith('ctxTaskAbort');
+                expect(ctxTaskOnError).toHaveBeenCalledWith('newTaskAbort');
+                expect(ctxTaskOnCancel).toHaveBeenCalledWith('newTaskCancel');
                 done();
             })
             .catch(done);

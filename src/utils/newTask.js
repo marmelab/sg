@@ -28,20 +28,27 @@ export default function newTask(generator, ctx = {}) {
                 .catch(abortSaga);
 
         const errorHandlers = [];
-
         const onError = fn =>
             errorHandlers.push(fn);
+
+        const cancelHandlers = [];
+        const onCancel = fn =>
+            cancelHandlers.push(fn);
 
         promise.catch(error => errorHandlers.map(fn => fn(error)));
 
         const task = {
             id,
             waitFor,
-            cancel: (error) => {
-                reject(error);
+            abort: reject,
+            cancel: () => {
                 iterator.cancelled = true;
+                resolve();
+                task.cancelled = true;
+                cancelHandlers.map(handler => handler());
             },
             onError,
+            onCancel,
             done: () => promise,
         };
 

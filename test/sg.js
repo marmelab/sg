@@ -9,6 +9,7 @@ import {
     fork,
     spawn,
     join,
+    cancel,
 } from '../src/effects';
 
 // const {
@@ -451,6 +452,29 @@ describe('sg', () => {
                 done();
             })
             .catch(done);
+        });
+    });
+
+    describe('cancel', () => {
+        it('should cancel spawned task', (done) => {
+            const spawnedGen = function* () {
+                while (true) {
+                    yield call(delay, 1000);
+                }
+            };
+
+            const gen = function* () {
+                const task = yield spawn(spawnedGen, 'arg');
+                yield cancel(task);
+                return task;
+            };
+
+            sg(gen)()
+                .then((t) => {
+                    expect(t.cancelled).toBe(true);
+                    done();
+                })
+                .catch(done);
         });
     });
 });

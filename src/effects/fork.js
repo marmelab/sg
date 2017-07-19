@@ -6,8 +6,9 @@ export const handleForkEffectFactory = newTaskImpl => ([callable, ...args], ctx)
         try {
             const task = newTaskImpl(callable, ctx)(...args);
             ctx.task.waitFor(task.done());
-            task.onError(ctx.task.cancel);
-            ctx.task.onError(task.cancel);
+            task.onError(ctx.task.abort);
+            ctx.task.onCancel(task.cancel);
+            ctx.task.onError(task.abort);
             resolve(task);
         } catch (error) {
             reject(error);

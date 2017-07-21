@@ -7,7 +7,6 @@ import {
     createTasksFromEffects as createTasksFromEffectsFactory,
 } from './race';
 
-
 describe('Effects: race', () => {
     describe('handleRaceEffect', () => {
         const getEffectArrayImpl = createSpy().andReturn({ keys: ['key1', 'key2', 'key3'], effectArray: 'effectArray' });
@@ -23,10 +22,10 @@ describe('Effects: race', () => {
 
         it('should be resolved with { key3: "success" } when executeTasksImpl return a result of success', async () => {
             executeTasksImpl.andReturn({ result: 'success', index: 2 });
-            const result = await handleRaceEffect(['effects'], 'emitter', 'id');
+            const result = await handleRaceEffect(['effects'], 'ctx');
             expect(result).toEqual({ key3: 'success' });
             expect(getEffectArrayImpl).toHaveBeenCalledWith('effects');
-            expect(createTasksFromEffectsImpl).toHaveBeenCalledWith('effectArray', 'emitter', 'id');
+            expect(createTasksFromEffectsImpl).toHaveBeenCalledWith('effectArray', 'ctx');
             expect(executeTasksImpl).toHaveBeenCalledWith('tasks');
             expect(cancelTasksImpl).toHaveBeenCalledWith('tasks', 2);
         });
@@ -35,14 +34,14 @@ describe('Effects: race', () => {
             executeTasksImpl.andReturn({ error: new Error('boom'), index: 2 });
             let error;
             try {
-                await handleRaceEffect(['effects'], 'emitter', 'id');
+                await handleRaceEffect(['effects'], 'ctx');
             } catch (e) {
                 error = e;
             }
             expect(error.message).toBe('boom');
 
             expect(getEffectArrayImpl).toHaveBeenCalledWith('effects');
-            expect(createTasksFromEffectsImpl).toHaveBeenCalledWith('effectArray', 'emitter', 'id');
+            expect(createTasksFromEffectsImpl).toHaveBeenCalledWith('effectArray', 'ctx');
             expect(executeTasksImpl).toHaveBeenCalledWith('tasks');
             expect(cancelTasksImpl).toHaveBeenCalledWith('tasks', 2);
         });
@@ -72,11 +71,11 @@ describe('Effects: race', () => {
         const createTasksFromEffects = createTasksFromEffectsFactory(newTask, wrapInGeneratorImpl);
 
         it('should call newTaskImpl with each effects wrapped in gen and execute them', () => {
-            const result = createTasksFromEffects(effects, 'emitter', 'id');
+            const result = createTasksFromEffects(effects, 'ctx');
             expect(result).toEqual(['taskObject', 'taskObject']);
             expect(wrapInGeneratorImpl).toHaveBeenCalledWith('effect1', 0, effects);
             expect(wrapInGeneratorImpl).toHaveBeenCalledWith('effect2', 1, effects);
-            expect(newTask).toHaveBeenCalledWith('effect in generator', 'emitter', 'id');
+            expect(newTask).toHaveBeenCalledWith('effect in generator', 'ctx');
             expect(task).toHaveBeenCalled();
         });
     });

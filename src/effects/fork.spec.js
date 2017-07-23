@@ -8,7 +8,7 @@ describe('handleForkEffectFactory', () => {
     before(() => {
         newTaskResultFn = expect.createSpy().andReturn({
             done: expect.createSpy().andReturn(Promise.resolve('task object')),
-            onError: expect.createSpy
+            onError: expect.createSpy(),
         });
         newTaskImpl = expect.createSpy().andReturn(newTaskResultFn);
     });
@@ -24,7 +24,7 @@ describe('handleForkEffectFactory', () => {
         const cancel = expect.createSpy();
         const onError = expect.createSpy();
         const onCancel = expect.createSpy();
-        handleForkEffectFactory(newTaskImpl)('arg1', { task: { waitFor, cancel, onError, onCancel } })
+        handleForkEffectFactory(newTaskImpl)('arg1', 'ctx', { waitFor, cancel, onError, onCancel })
         .then(result => result.done())
         .then((result) => {
             expect(result).toBe('task object');
@@ -37,7 +37,7 @@ describe('handleForkEffectFactory', () => {
         newTaskImpl = () => () => {
             throw new Error('Boom');
         };
-        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], { task: {} })
+        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], 'ctx', 'task')
             .then(() => {
                 throw new Error('handleForkEffect should have thrown an error');
             })
@@ -59,13 +59,13 @@ describe('handleForkEffectFactory', () => {
             abort: 'newTaskAbort',
         });
         newTaskImpl = expect.createSpy().andReturn(newTaskResultFn);
-        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], { task: {
+        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], 'ctx', {
             cancel: 'ctxTaskCancel',
             abort: 'ctxTaskAbort',
             waitFor: expect.createSpy(),
             onError: ctxTaskOnError,
             onCancel: ctxTaskOnCancel,
-        } })
+        })
             .catch(done)
             .then(() => {
                 expect(newTaskOnError).toHaveBeenCalledWith('ctxTaskAbort');

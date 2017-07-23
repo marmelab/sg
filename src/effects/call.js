@@ -3,9 +3,9 @@ import createEffect from './createEffect';
 import assertIsCallable from '../utils/assertIsCallable';
 import isGenerator from '../utils/isGenerator';
 
-export const handleCallEffect = ([callable, ...args], emitter, id) => {
+export const handleCallEffect = ([callable, ...args], ctx) => {
     if (isGenerator(callable)) {
-        return sg(callable, emitter, id)(...args);
+        return sg(callable, ctx)(...args);
     }
     assertIsCallable(callable);
     try {

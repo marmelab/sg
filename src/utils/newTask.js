@@ -52,10 +52,7 @@ export default function newTask(generator, ctx = {}) {
             done: () => promise,
         };
 
-        const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, {
-            ...ctx,
-            task,
-        });
+        const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, ctx, task);
 
         iterateSaga();
 

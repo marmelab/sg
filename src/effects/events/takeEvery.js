@@ -1,6 +1,6 @@
 import createEffect from '../createEffect';
 import take from './take';
-import fork, { handleForkEffect } from './fork';
+import fork, { handleForkEffect } from '../fork';
 
 export function* takeEverySaga(type, gen, ...args) {
     while (true) {
@@ -9,7 +9,7 @@ export function* takeEverySaga(type, gen, ...args) {
     }
 }
 
-export const handleTakeEveryEffect = ([type, gen, ...args], emitter, id) =>
-    handleForkEffect([takeEverySaga, type, gen, ...args], emitter, id);
+export const handleTakeEveryEffect = ([type, gen, ...args], ctx, task) =>
+    handleForkEffect([takeEverySaga, type, gen, ...args], ctx, task);
 
 export default createEffect('takeEvery', handleTakeEveryEffect);

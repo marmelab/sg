@@ -1,9 +1,12 @@
 import createEffect from '../createEffect';
 
-export const handlePutEffect = ([type, payload], emitter, id) =>
+export const handlePutEffect = ([type, payload], ctx) =>
     new Promise((resolve, reject) => {
         try {
-            emitter.put(id, type, payload);
+            if (ctx.event && ctx.event[type]) {
+                ctx.event[type].map(fn => fn(payload));
+                delete ctx.event[type];
+            }
             resolve();
         } catch (error) {
             reject(error);

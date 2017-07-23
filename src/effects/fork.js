@@ -1,15 +1,15 @@
 import newTask from '../utils/newTask';
 import createEffect from './createEffect';
 
-export const handleForkEffectFactory = newTaskImpl => ([callable, ...args], ctx) =>
+export const handleForkEffectFactory = newTaskImpl => ([callable, ...args], ctx, currentTask) =>
     new Promise((resolve, reject) => {
         try {
-            const task = newTaskImpl(callable, ctx)(...args);
-            ctx.task.waitFor(task.done());
-            task.onError(ctx.task.abort);
-            ctx.task.onCancel(task.cancel);
-            ctx.task.onError(task.abort);
-            resolve(task);
+            const forkedTask = newTaskImpl(callable, ctx)(...args);
+            currentTask.waitFor(forkedTask.done());
+            forkedTask.onError(currentTask.abort);
+            currentTask.onCancel(forkedTask.cancel);
+            currentTask.onError(forkedTask.abort);
+            resolve(forkedTask);
         } catch (error) {
             reject(error);
         }

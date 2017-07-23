@@ -1,7 +1,7 @@
 import createEffect from '../createEffect';
 import take from './take';
-import cancel from './cancel';
-import fork, { handleForkEffect } from './fork';
+import cancel from '../cancel';
+import fork, { handleForkEffect } from '../fork';
 
 export function* takeLatestSaga(type, gen, ...args) {
     let task;

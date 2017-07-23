@@ -1,13 +1,15 @@
+import get from 'lodash.get';
+import set from 'lodash.set';
+
 import createEffect from '../createEffect';
 
 export const handleTakeEffect = ([type], ctx) =>
     new Promise((resolve, reject) => {
         try {
-            ctx.event = ctx.event || {};
-            ctx.event[type] = [
-                ...ctx.event[type] || [],
+            set(ctx, ['event', type], [
+                ...get(ctx, ['event', type], []),
                 payload => resolve(payload),
-            ];
+            ]);
         } catch (error) {
             reject(error);
         }

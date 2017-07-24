@@ -5,7 +5,7 @@
   "main": "dist/sg.js",
   "scripts": {
     "prepublish": "BABEL_ENV=dist node_modules/babel-cli/bin/babel.js src --out-dir dist --ignore spec.js",
-    "test": "BABEL_ENV=dev node_modules/mocha/bin/mocha ./test/ ./src/**/*.spec.js"
+    "test": "BABEL_ENV=dev node_modules/mocha/bin/mocha ./test/ ./src/**/*.spec.js ./src/**/**/*.spec.js"
   },
   "author": "",
   "license": "MIT",
@@ -31,6 +31,8 @@
   },
   "dependencies": {
     "co": "4.6.0",
+    "lodash.get": "^4.4.2",
+    "lodash.set": "^4.3.2",
     "lodash.without": "4.4.0",
     "lodash.zipobject": "4.1.3",
     "uuid": "3.0.1"

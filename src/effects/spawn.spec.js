@@ -1,42 +1,49 @@
 import expect from 'expect';
 
-import { handleSpawnEffect } from './spawn';
+import { handleSpawnEffectFactory } from './spawn';
 
 describe('handleSpawnEffect', () => {
     let newTaskImpl;
     let newTaskResultFn;
     before(() => {
-        newTaskResultFn = expect.createSpy().andReturn(Promise.resolve('task object'));
+        newTaskResultFn = expect.createSpy().andReturn({
+            done: expect.createSpy().andReturn(Promise.resolve('task object')),
+            onError: expect.createSpy
+        });
         newTaskImpl = expect.createSpy().andReturn(newTaskResultFn);
     });
 
     it('should call newTaskImpl with received arg', () => {
-        handleSpawnEffect(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], 'emitter');
-        expect(newTaskImpl).toHaveBeenCalledWith('arg1_1', 'emitter');
+        handleSpawnEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], { task: {} });
+        expect(newTaskImpl).toHaveBeenCalledWith('arg1_1', { task: {} });
         expect(newTaskResultFn).toHaveBeenCalledWith('arg1_2', 'arg1_3');
     });
 
-    it('should resolve to a function returning newTaskImpl resulting promise', (done) => {
-        handleSpawnEffect(newTaskImpl)('arg1', 'arg2')
-        .then((handleCallResult) => {
-            expect(handleCallResult).toEqual('task object');
-            done();
-        })
-        .catch(done);
+    it('should resolve to a function returning newTaskImpl resulting promise', (cb) => {
+        const waitFor = expect.createSpy();
+        const cancel = expect.createSpy();
+        const onError = expect.createSpy();
+        handleSpawnEffectFactory(newTaskImpl)('arg1', { task: { waitFor, cancel, onError } })
+            .then(result => result.done())
+            .then((result) => {
+                expect(result).toBe('task object');
+                cb();
+            })
+            .catch(cb);
     });
 
-    it('should reject to error thrown by newTaskImpl', (done) => {
+    it('should reject with error thrown by newTaskImpl if any', (done) => {
         newTaskImpl = () => () => {
             throw new Error('Boom');
         };
-        handleSpawnEffect(newTaskImpl)('arg1', 'arg2')
-        .then(() => {
-            throw new Error('handleSpawnEffect should have been rejected');
-        })
-        .catch((error) => {
-            expect(error.message).toBe('Boom');
-            done();
-        })
-        .catch(done);
+        handleSpawnEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], { task: {} })
+            .then(() => {
+                throw new Error('handleForkEffect should have thrown an error');
+            })
+            .catch((error) => {
+                expect(error.message).toBe('Boom');
+                done();
+            })
+            .catch(done);
     });
 });

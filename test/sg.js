@@ -5,17 +5,21 @@ import sg from '../src/sg';
 import {
     call,
     cps,
+    delay,
     fork,
     spawn,
+    join,
+    cancel,
+    race,
+    events,
+} from '../src/effects';
+
+const {
     put,
     take,
     takeEvery,
     takeLatest,
-    cancel,
-    delay,
-    race,
-    join,
-} from '../src/effects';
+} = events;
 
 describe('sg', () => {
     it('should execute generator', (done) => {
@@ -100,6 +104,49 @@ describe('sg', () => {
         });
     });
 
+    describe('fork', () => {
+        it('should wait for fork to finish before finishing saga', (done) => {
+            const fn = expect.createSpy();
+            function* forked() {
+                yield delay(100);
+                yield call(fn);
+            }
+            function* saga() {
+                yield fork(forked);
+            }
+
+            sg(saga)().then(() => {
+                expect(fn).toHaveBeenCalled();
+                done();
+            })
+            .catch(done);
+        });
+
+        it('error from forked should bubble up to saga', (done) => {
+            function* forked() {
+                yield delay(100);
+                throw new Error('Boom');
+            }
+            function* saga() {
+                yield fork(forked);
+
+                while (true) {
+                    yield delay(1);
+                }
+            }
+
+            sg(saga)()
+                .then(() => {
+                    throw new Error('expected error Boom');
+                })
+                .catch((error) => {
+                    expect(error.message).toBe('Boom');
+                    done();
+                })
+                .catch(done);
+        });
+    });
+
     describe('put take fork', () => {
         it('should reject with error thrown in forked generator', (done) => {
             function* sub() {
@@ -126,38 +173,18 @@ describe('sg', () => {
 
         it('should be able to communicate between forked saga with put and take', (done) => {
             let payload;
+
             function* fork1() {
-                yield put('from_fork1', 'fork1_payload');
+                payload = yield take('from_fork1');
             }
 
             function* fork2() {
-                payload = yield take('from_fork1');
-            }
-
-            function* main() {
-                yield fork(fork2);
-                yield fork(fork1);
-            }
-
-            sg(main)()
-            .then((result) => {
-                expect(result).toBe(undefined);
-                expect(payload).toBe('fork1_payload');
-                done();
-            })
-            .catch(done);
-        });
-
-        it('should be able to communicate with nested saga', (done) => {
-            let payload;
-
-            function* fork1() {
                 yield put('from_fork1', 'fork1_payload');
             }
 
             function* main() {
                 yield fork(fork1);
-                payload = yield take('from_fork1');
+                yield fork(fork2);
             }
 
             sg(main)()
@@ -201,15 +228,15 @@ describe('sg', () => {
             }
 
             sg(function* () {
-                const task = yield takeEvery('event', gen, 'arg1', 'arg2');
-                yield put('event', '1');
-                yield put('event', '2');
-                yield put('event', '3');
-                yield put('event', '4');
-                yield put('event', '5');
-                yield put('event', '6');
-                yield put('event', '7');
-                yield put('event', '8');
+                const task = yield takeEvery('my_event', gen, 'arg1', 'arg2');
+                yield put('my_event', '1');
+                yield put('my_event', '2');
+                yield put('my_event', '3');
+                yield put('my_event', '4');
+                yield put('my_event', '5');
+                yield put('my_event', '6');
+                yield put('my_event', '7');
+                yield put('my_event', '8');
                 yield call(() => new Promise(resolve => setTimeout(resolve, 100)));
                 yield cancel(task);
             })()
@@ -370,12 +397,12 @@ describe('sg', () => {
             };
 
             sg(gen)()
-            .then((result) => {
-                expect(result).toBe('spawnedResult');
-                expect(spawnedGenCall).toEqual([['arg']]);
-                done();
-            })
-            .catch(done);
+                .then((result) => {
+                    expect(result).toBe('spawnedResult');
+                    expect(spawnedGenCall).toEqual([['arg']]);
+                    done();
+                })
+                .catch(done);
         });
 
         it('should wait for spawned task to end before resuming and throw its error', (done) => {
@@ -393,15 +420,38 @@ describe('sg', () => {
             };
 
             sg(gen)()
-            .then(() => {
-                throw new Error('gen promise should have been rejected');
-            })
-            .catch((error) => {
-                expect(error.message).toBe('spawnedError');
-                expect(spawnedGenCall).toEqual([['arg']]);
-                done();
-            })
-            .catch(done);
+                .then(() => {
+                    throw new Error('gen promise should have been rejected');
+                })
+                .catch((error) => {
+                    expect(error.message).toBe('spawnedError');
+                    expect(spawnedGenCall).toEqual([['arg']]);
+                    done();
+                })
+                .catch(done);
+        });
+    });
+
+    describe('cancel', () => {
+        it('should cancel spawned task', (done) => {
+            const spawnedGen = function* () {
+                while (true) {
+                    yield call(delay, 1000);
+                }
+            };
+
+            const gen = function* () {
+                const task = yield spawn(spawnedGen, 'arg');
+                yield cancel(task);
+                return task;
+            };
+
+            sg(gen)()
+                .then((t) => {
+                    expect(t.cancelled).toBe(true);
+                    done();
+                })
+                .catch(done);
         });
     });
 });

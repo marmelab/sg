@@ -1,7 +1,8 @@
 import newTask from './utils/newTask';
 
-function sg(generator, emitter, parentId = null) {
-    const task = newTask(generator, emitter, parentId);
+function sg(generator, ctx = {}) {
+    const task = newTask(generator, ctx);
+
     return (...args) => task(...args).done();
 }
 

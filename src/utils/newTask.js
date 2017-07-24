@@ -1,90 +1,60 @@
 import uuid from 'uuid';
-import SgEmitter from './SgEmitter';
 import isGenerator from './isGenerator';
 import deferred from './deferred';
-import effectHandler from './effectHandler';
 import sagaIterator from './sagaIterator';
 
-
-export default function newTask(generator, emitter, parentId = null) {
+export default function newTask(generator, ctx = {}) {
     const id = uuid();
-    const sgEmitter = new SgEmitter(id, emitter);
     if (!isGenerator(generator)) {
         throw new Error('sg need a generator function');
     }
     return (...args) => {
         const { promise, resolve, reject } = deferred();
-
-        if (parentId) {
-            sgEmitter.emit('newTask', { target: parentId, id, promise });
-        }
-
         const iterator = generator(...args);
 
         const forkedPromises = [];
 
-        sgEmitter.on('error', (payload) => {
-            if (payload.target !== id) {
-                return;
-            }
-            reject(payload.error);
-            if (parentId) {
-                sgEmitter.emit('error', {
-                    ...payload,
-                    target: parentId,
-                });
-            }
-        });
-
-        sgEmitter.on('newTask', (payload) => {
-            if (payload.target !== id) {
-                return;
-            }
-            forkedPromises.push(payload.promise);
-        });
-
-        sgEmitter.on('cancel', (payload) => {
-            if (payload.target !== parentId) {
-                return;
-            }
-            resolve();
-            sgEmitter.emit('cancel', {
-                ...payload,
-                target: id,
-            }); // tell saga children to cancel
-        });
+        const waitFor = p => forkedPromises.push(p);
 
         const abortSaga = (error) => {
             reject(error);
-            if (parentId) {
-                sgEmitter.emit('error', {
-                    error,
-                    target: parentId,
-                });
-            }
         };
 
         const resolveSaga = value =>
             Promise.all(forkedPromises)
-            .then(() => {
-                resolve(value);
-            })
-            .catch(abortSaga);
+                .then(() => {
+                    resolve(value);
+                })
+                .catch(abortSaga);
 
-        const handleEffect = effectHandler(sgEmitter, id);
+        const errorHandlers = [];
+        const onError = fn =>
+            errorHandlers.push(fn);
 
-        const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, handleEffect);
+        const cancelHandlers = [];
+        const onCancel = fn =>
+            cancelHandlers.push(fn);
 
-        iterateSaga();
+        promise.catch(error => errorHandlers.map(fn => fn(error)));
 
         const task = {
             id,
+            waitFor,
+            abort: reject,
             cancel: () => {
-                resolve();
                 iterator.cancelled = true;
+                resolve();
+                task.cancelled = true;
+                cancelHandlers.map(handler => handler());
             },
+            onError,
+            onCancel,
             done: () => promise,
         };
+
+        const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, ctx, task);
+
+        iterateSaga();
 
         return task;
     };

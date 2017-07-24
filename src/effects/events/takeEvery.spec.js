@@ -1,18 +1,16 @@
 import expect from 'expect';
 
-import { takeLatestSaga } from './takeLatest';
+import { takeEverySaga } from './takeEvery';
 import take from './take';
-import fork from './fork';
-import cancel from './cancel';
+import fork from '../fork';
 
-describe('takeLatestSaga', () => {
+describe('takeEverySaga', () => {
     let iterator;
     function* gen() {
         yield Promise.resolve();
     }
-
     before(() => {
-        iterator = takeLatestSaga('type', gen, 'arg1', 'arg2');
+        iterator = takeEverySaga('type', gen, 'arg1', 'arg2');
     });
 
     it('should call take with type', () => {
@@ -26,12 +24,7 @@ describe('takeLatestSaga', () => {
     });
 
     it('should call take with type again', () => {
-        const next = iterator.next('forked_task');
-        expect(next.value).toEqual(take('type'));
-    });
-
-    it('should call cancel with task returned by previous fork', () => {
         const next = iterator.next();
-        expect(next.value).toEqual(cancel('forked_task'));
+        expect(next.value).toEqual(take('type'));
     });
 });

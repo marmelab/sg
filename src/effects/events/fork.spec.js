@@ -1,7 +1,7 @@
 import expect from 'expect';
 
 import { handleForkEffectFactory } from './fork';
-import SgEmitter from '../utils/SgEmitter';
+import SgEmitter from './SgEmitter';
 
 describe('handleForkEffectFactory', () => {
     let newTaskImpl;

@@ -1,4 +1,4 @@
-import createEffect from './createEffect';
+import createEffect from '../createEffect';
 
 export const handlePutEffect = ([type, payload], emitter, id) =>
     new Promise((resolve, reject) => {

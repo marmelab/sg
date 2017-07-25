@@ -1,5 +1,5 @@
 import expect from 'expect';
-import SgEmitter from '../utils/SgEmitter';
+import SgEmitter from './SgEmitter';
 
 import { handleTakeEffect } from './take';
 

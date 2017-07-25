@@ -1,5 +1,5 @@
-import createEffect from './createEffect';
-import newTask from '../utils/newTask';
+import createEffect from '../createEffect';
+import newTask from '../../utils/newTask';
 
 export const getEffectArray = (effects) => {
     if (Array.isArray(effects)) {

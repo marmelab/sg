@@ -21,7 +21,7 @@ const {
     takeLatest,
 } = eventsFactory();
 
-describe.only('sg', () => {
+describe('sg', () => {
     it('should execute generator', (done) => {
         const add = (a, b) => a + b;
         const multiply = (a, b) => Promise.resolve(a * b);

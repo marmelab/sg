@@ -11,7 +11,7 @@ import {
     join,
     cancel,
     race,
-    events,
+    events as eventsFactory,
 } from '../src/effects';
 
 const {
@@ -19,9 +19,9 @@ const {
     take,
     takeEvery,
     takeLatest,
-} = events;
+} = eventsFactory();
 
-describe('sg', () => {
+describe.only('sg', () => {
     it('should execute generator', (done) => {
         const add = (a, b) => a + b;
         const multiply = (a, b) => Promise.resolve(a * b);

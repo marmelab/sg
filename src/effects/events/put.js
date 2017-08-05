@@ -1,22 +1,13 @@
-import get from 'lodash.get';
-import set from 'lodash.set';
-
-import listenerKey from './listenerKey';
 import createEffect from '../createEffect';
 
-export const handlePutEffect = ([type, payload], ctx) =>
+export const handlePutEffect = emitter => ([type, payload]) =>
     new Promise((resolve, reject) => {
         try {
-            const events = get(ctx, [listenerKey, type], []);
-            if (events) {
-                events.map(fn => fn(payload));
-                set(ctx, [listenerKey, type], []);
-            }
-
+            emitter.emit(type, payload);
             setTimeout(resolve, 0);
         } catch (error) {
             reject(error);
         }
     });
 
-export default createEffect('put', handlePutEffect);
+export default emitter => createEffect('put', handlePutEffect(emitter));

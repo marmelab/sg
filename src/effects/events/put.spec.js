@@ -1,7 +1,6 @@
 import expect from 'expect';
 
 import { handlePutEffect as handlePutEffectFactory } from './put';
-import listenerKey from './listenerKey';
 
 describe('handlePutEffect', () => {
     const eventEmitter = {
@@ -14,16 +13,7 @@ describe('handlePutEffect', () => {
     });
 
     it('should trigger corresponding listener in ctx', () => {
-        const listener1 = expect.createSpy();
-        const listener2 = expect.createSpy();
-        const listener3 = expect.createSpy();
-        const ctx = {
-            [listenerKey]: {
-                eventType: [listener1, listener2],
-                otherType: [listener3],
-            },
-        };
-        handlePutEffect(['eventType', { payload: 'data' }], ctx);
+        handlePutEffect(['eventType', { payload: 'data' }]);
         expect(eventEmitter.emit).toHaveBeenCalledWith('eventType', { payload: 'data' });
     });
 

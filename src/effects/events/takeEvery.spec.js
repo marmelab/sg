@@ -1,8 +1,8 @@
 import expect from 'expect';
 
-import { takeEverySaga } from './takeEvery';
-import take from './take';
+import { takeEverySaga as takeEverySagaFactory } from './takeEvery';
 import fork from '../fork';
+import take from './take';
 
 describe('takeEverySaga', () => {
     let iterator;
@@ -10,7 +10,7 @@ describe('takeEverySaga', () => {
         yield Promise.resolve();
     }
     before(() => {
-        iterator = takeEverySaga('type', gen, 'arg1', 'arg2');
+        iterator = takeEverySagaFactory(take)('type', gen, 'arg1', 'arg2');
     });
 
     it('should call take with type', () => {

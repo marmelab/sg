@@ -20,7 +20,7 @@ export const getEffectArray = (effects) => {
 export const cancelTasks = (tasks, except) =>
     tasks
         .filter((_, i) => i !== except)
-        .forEach(task => task.cancel());
+        .forEach(task => task.cancel(new Error('Cancelled by race')));
 
 export const wrapInGenerator = effect =>
     function* () { return yield effect; };

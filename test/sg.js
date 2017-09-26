@@ -10,6 +10,7 @@ import {
     spawn,
     join,
     cancel,
+    race,
 } from '../src/effects';
 
 // const {
@@ -311,7 +312,7 @@ describe('sg', () => {
         });
     });
 
-    describe.skip('race', () => {
+    describe('race', () => {
         it('should call both effect at once and return the result of the first', (done) => {
             let firstEffectSagaCall = false;
             let lastEffectSagaCall = false;
@@ -420,12 +421,12 @@ describe('sg', () => {
             };
 
             sg(gen)()
-            .then((result) => {
-                expect(result).toBe('spawnedResult');
-                expect(spawnedGenCall).toEqual([['arg']]);
-                done();
-            })
-            .catch(done);
+                .then((result) => {
+                    expect(result).toBe('spawnedResult');
+                    expect(spawnedGenCall).toEqual([['arg']]);
+                    done();
+                })
+                .catch(done);
         });
 
         it('should wait for spawned task to end before resuming and throw its error', (done) => {
@@ -443,15 +444,15 @@ describe('sg', () => {
             };
 
             sg(gen)()
-            .then(() => {
-                throw new Error('gen promise should have been rejected');
-            })
-            .catch((error) => {
-                expect(error.message).toBe('spawnedError');
-                expect(spawnedGenCall).toEqual([['arg']]);
-                done();
-            })
-            .catch(done);
+                .then(() => {
+                    throw new Error('gen promise should have been rejected');
+                })
+                .catch((error) => {
+                    expect(error.message).toBe('spawnedError');
+                    expect(spawnedGenCall).toEqual([['arg']]);
+                    done();
+                })
+                .catch(done);
         });
     });
 

@@ -1,5 +1,5 @@
-import createEffect from '../createEffect';
-import newTask from '../../utils/newTask';
+import createEffect from './createEffect';
+import newTask from '../utils/newTask';
 
 export const getEffectArray = (effects) => {
     if (Array.isArray(effects)) {
@@ -20,18 +20,17 @@ export const getEffectArray = (effects) => {
 export const cancelTasks = (tasks, except) =>
     tasks
         .filter((_, i) => i !== except)
-        .forEach(task => task.cancel(new Error('Cancelled by race')));
+        .forEach(task => task.cancel());
 
 export const wrapInGenerator = effect =>
     function* () { return yield effect; };
 
-export const createTasksFromEffects = (newTaskImpl, wrapInGeneratorImpl) => (effects, emitter, id) =>
+export const createTasksFromEffects = (newTaskImpl, wrapInGeneratorImpl) => (effects, ctx) =>
     effects
     .map(wrapInGeneratorImpl)
     .map(gen => newTaskImpl(
         gen,
-        emitter,
-        id,
+        ctx
     ))
     .map(task => task());
 
@@ -48,9 +47,9 @@ export const handleRaceEffect = (
     createTasksFromEffectsImpl,
     executeTasksImpl,
     cancelTasksImpl
-) => async ([effects], emitter, id) => {
+) => async ([effects], ctx) => {
     const { effectArray, keys } = getEffectArrayImpl(effects);
-    const tasks = createTasksFromEffectsImpl(effectArray, emitter, id);
+    const tasks = createTasksFromEffectsImpl(effectArray, ctx);
 
     const { result, error, index } = await executeTasksImpl(tasks);
     cancelTasksImpl(tasks, index);

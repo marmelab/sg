@@ -11,19 +11,15 @@ import {
     join,
     cancel,
     race,
+    events,
 } from '../src/effects';
 
-// const {
-//     race,
-//     join,
-//     fork,
-//     spawn,
-//     put,
-//     take,
-//     takeEvery,
-//     takeLatest,
-//     cancel,
-// } = events;
+const {
+    put,
+    take,
+    takeEvery,
+    takeLatest,
+} = events;
 
 describe('sg', () => {
     it('should execute generator', (done) => {
@@ -151,7 +147,7 @@ describe('sg', () => {
         });
     });
 
-    describe.skip('put take fork', () => {
+    describe('put take fork', () => {
         it('should reject with error thrown in forked generator', (done) => {
             function* sub() {
                 yield call(() => {});
@@ -177,38 +173,18 @@ describe('sg', () => {
 
         it('should be able to communicate between forked saga with put and take', (done) => {
             let payload;
+
             function* fork1() {
-                yield put('from_fork1', 'fork1_payload');
+                payload = yield take('from_fork1');
             }
 
             function* fork2() {
-                payload = yield take('from_fork1');
-            }
-
-            function* main() {
-                yield fork(fork2);
-                yield fork(fork1);
-            }
-
-            sg(main)()
-            .then((result) => {
-                expect(result).toBe(undefined);
-                expect(payload).toBe('fork1_payload');
-                done();
-            })
-            .catch(done);
-        });
-
-        it('should be able to communicate with nested saga', (done) => {
-            let payload;
-
-            function* fork1() {
                 yield put('from_fork1', 'fork1_payload');
             }
 
             function* main() {
                 yield fork(fork1);
-                payload = yield take('from_fork1');
+                yield fork(fork2);
             }
 
             sg(main)()
@@ -244,7 +220,7 @@ describe('sg', () => {
         });
     });
 
-    describe.skip('takeEvery', () => {
+    describe('takeEvery', () => {
         it('should call given generator on each taken effect', (done) => {
             const genCall = [];
             function* gen(...args) {
@@ -252,15 +228,15 @@ describe('sg', () => {
             }
 
             sg(function* () {
-                const task = yield takeEvery('event', gen, 'arg1', 'arg2');
-                yield put('event', '1');
-                yield put('event', '2');
-                yield put('event', '3');
-                yield put('event', '4');
-                yield put('event', '5');
-                yield put('event', '6');
-                yield put('event', '7');
-                yield put('event', '8');
+                const task = yield takeEvery('my_event', gen, 'arg1', 'arg2');
+                yield put('my_event', '1');
+                yield put('my_event', '2');
+                yield put('my_event', '3');
+                yield put('my_event', '4');
+                yield put('my_event', '5');
+                yield put('my_event', '6');
+                yield put('my_event', '7');
+                yield put('my_event', '8');
                 yield call(() => new Promise(resolve => setTimeout(resolve, 100)));
                 yield cancel(task);
             })()
@@ -281,7 +257,7 @@ describe('sg', () => {
         });
     });
 
-    describe.skip('takeLatest', () => {
+    describe('takeLatest', () => {
         it('should call given generator on last taken effect', (done) => {
             const genCall = [];
             function* gen(...args) {

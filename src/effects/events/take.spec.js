@@ -1,14 +1,15 @@
 import expect from 'expect';
-import SgEmitter from './SgEmitter';
 
 import { handleTakeEffect } from './take';
+import listenerKey from './listenerKey';
 
 describe('handleTakeEffect', () => {
-    it('should call emitter.once with type and listener calling resolve with received payload', (done) => {
-        const emitter = new SgEmitter();
-        const promise = handleTakeEffect(['event'], emitter);
-        emitter.emit('event', 'payload');
-
+    it('should add a listener to the context and resolve with the value passed to this listener', (done) => {
+        const ctx = {};
+        const promise = handleTakeEffect(['event'], ctx);
+        expect(ctx[listenerKey].event).toBeA('array');
+        expect(ctx[listenerKey].event[0]).toBeA('function');
+        ctx[listenerKey].event[0]('payload');
         promise.then((result) => {
             expect(result).toEqual('payload');
             done();

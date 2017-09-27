@@ -2,7 +2,7 @@ import expect from 'expect';
 
 import { takeEverySaga } from './takeEvery';
 import take from './take';
-import fork from './fork';
+import fork from '../fork';
 
 describe('takeEverySaga', () => {
     let iterator;

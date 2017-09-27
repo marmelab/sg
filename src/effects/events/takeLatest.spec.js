@@ -2,8 +2,8 @@ import expect from 'expect';
 
 import { takeLatestSaga } from './takeLatest';
 import take from './take';
-import fork from './fork';
-import cancel from './cancel';
+import fork from '../fork';
+import cancel from '../cancel';
 
 describe('takeLatestSaga', () => {
     let iterator;

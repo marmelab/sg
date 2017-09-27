@@ -3,6 +3,17 @@ import isGenerator from './isGenerator';
 import deferred from './deferred';
 import sagaIterator from './sagaIterator';
 
+/*
+ * Take a generator a context and some arguments, and execute the generator returning a task
+ * Task:
+ *      waitFor: add a promise for the task to waitFor before resolving used by the forkEffect to tell its parent task to wait for the new forked task to end
+ *      abort: reject the internal promise with the given error, used internally to abort the task when the generator threw an error
+ *      cancel: cancel the task, it's iteration get stopped, and the internal promise become resolved
+ *      onError: add error listener to be called when the task intenal promise is rejected.
+ *      onCancel: add cancel listener to be called when the task get cancelled
+ *      done: function that return the internal promise
+ */
+
 export default function newTask(generator, ctx = {}) {
     const id = uuid();
     if (!isGenerator(generator)) {
@@ -16,16 +27,12 @@ export default function newTask(generator, ctx = {}) {
 
         const waitFor = p => forkedPromises.push(p);
 
-        const abortSaga = (error) => {
-            reject(error);
-        };
-
         const resolveSaga = value =>
             Promise.all(forkedPromises)
                 .then(() => {
                     resolve(value);
                 })
-                .catch(abortSaga);
+                .catch(reject);
 
         const errorHandlers = [];
         const onError = fn =>
@@ -52,7 +59,7 @@ export default function newTask(generator, ctx = {}) {
             done: () => promise,
         };
 
-        const iterateSaga = sagaIterator(iterator, resolveSaga, abortSaga, ctx, task);
+        const iterateSaga = sagaIterator(iterator, resolveSaga, reject, ctx, task);
 
         iterateSaga();
 

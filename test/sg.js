@@ -11,7 +11,7 @@ import {
     join,
     cancel,
     race,
-    events,
+    events as eventsFactory,
 } from '../src/effects';
 
 const {
@@ -19,7 +19,7 @@ const {
     take,
     takeEvery,
     takeLatest,
-} = events;
+} = eventsFactory();
 
 describe('sg', () => {
     it('should execute generator', (done) => {

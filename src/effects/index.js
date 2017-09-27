@@ -1,6 +1,4 @@
-import * as eventsEffects from './events';
-
-export const events = eventsEffects;
+export { default as events } from './events';
 export { default as call } from './call';
 export { default as thunk } from './thunk';
 export { default as co } from './co';

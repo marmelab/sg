@@ -1,24 +1,20 @@
 import expect from 'expect';
 
-import { handlePutEffect } from './put';
-import listenerKey from './listenerKey';
+import { handlePutEffect as handlePutEffectFactory } from './put';
 
 describe('handlePutEffect', () => {
+    const eventEmitter = {
+        emit: expect.createSpy(),
+    };
+    const handlePutEffect = handlePutEffectFactory(eventEmitter);
+
+    beforeEach(() => {
+        eventEmitter.emit.reset();
+    });
 
     it('should trigger corresponding listener in ctx', () => {
-        const listener1 = expect.createSpy();
-        const listener2 = expect.createSpy();
-        const listener3 = expect.createSpy();
-        const ctx = {
-            [listenerKey]: {
-                eventType: [listener1, listener2],
-                otherType: [listener3],
-            },
-        };
-        handlePutEffect(['eventType', { payload: 'data' }], ctx);
-        expect(listener1).toHaveBeenCalledWith({ payload: 'data' });
-        expect(listener2).toHaveBeenCalledWith({ payload: 'data' });
-        expect(listener3).toNotHaveBeenCalled();
+        handlePutEffect(['eventType', { payload: 'data' }]);
+        expect(eventEmitter.emit).toHaveBeenCalledWith('eventType', { payload: 'data' });
     });
 
     it('should return a promise resolving to undefined', (done) => {

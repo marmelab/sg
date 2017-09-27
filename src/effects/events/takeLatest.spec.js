@@ -12,7 +12,7 @@ describe('takeLatestSaga', () => {
     }
 
     before(() => {
-        iterator = takeLatestSaga('type', gen, 'arg1', 'arg2');
+        iterator = takeLatestSaga(take)('type', gen, 'arg1', 'arg2');
     });
 
     it('should call take with type', () => {

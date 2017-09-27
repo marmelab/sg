@@ -1,4 +1,3 @@
-import uuid from 'uuid';
 import isGenerator from './isGenerator';
 import deferred from './deferred';
 import sagaIterator from './sagaIterator';
@@ -15,10 +14,10 @@ import sagaIterator from './sagaIterator';
  */
 
 export default function newTask(generator, ctx = {}) {
-    const id = uuid();
     if (!isGenerator(generator)) {
         throw new Error('sg need a generator function');
     }
+
     return (...args) => {
         const { promise, resolve, reject } = deferred();
         const iterator = generator(...args);
@@ -45,7 +44,6 @@ export default function newTask(generator, ctx = {}) {
         promise.catch(error => errorHandlers.map(fn => fn(error)));
 
         const task = {
-            id,
             waitFor,
             abort: reject,
             cancel: () => {

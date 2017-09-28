@@ -45,9 +45,9 @@ export default function newTask(generator, ctx = {}) {
 
         const task = {
             waitFor,
-            abort: reject,
+            reject,
+            resolve: resolveSaga,
             cancel: () => {
-                iterator.cancelled = true;
                 resolve();
                 task.cancelled = true;
                 cancelHandlers.map(handler => handler());
@@ -57,7 +57,7 @@ export default function newTask(generator, ctx = {}) {
             done: () => promise,
         };
 
-        const iterateSaga = sagaIterator(iterator, resolveSaga, reject, ctx, task);
+        const iterateSaga = sagaIterator(iterator, ctx, task);
 
         iterateSaga();
 

@@ -1,13 +1,25 @@
 import handleEffect from './handleEffect';
 
-export const sagaIteratorFactory = handleEffectImpl => (iterator, resolveSaga, abortSaga, ctx, task) => async function iterateSaga(data, isError) {
+/*
+ * sagaIteratorFactory: Take the handleEffect function and return a saga iterator
+ *
+ * sagaIterator: iterate over an iterator updating the task object accordingly
+ *      iterator: the iterator object
+ *      ctx: the context object
+ *      task: the task
+ *  return iterateSaga
+ *
+ * iterateSaga:
+ *      Execute the iterator recursively
+ */
+export const sagaIteratorFactory = handleEffectImpl => (iterator, ctx, task) => async function iterateSaga(data, isError) {
     try {
-        if (iterator.cancelled) {
+        if (task.cancelled) {
             return null;
         }
         const { done, value } = isError ? iterator.throw(data) : iterator.next(data);
         if (done) {
-            resolveSaga(value);
+            task.resolve(value);
             return null;
         }
         try {
@@ -17,7 +29,7 @@ export const sagaIteratorFactory = handleEffectImpl => (iterator, resolveSaga, a
             return iterateSaga(error, true);
         }
     } catch (error) {
-        abortSaga(error);
+        task.reject(error);
         return null;
     }
 };

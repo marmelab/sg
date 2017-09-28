@@ -56,20 +56,20 @@ describe('handleForkEffectFactory', () => {
             done: expect.createSpy(),
             onError: newTaskOnError,
             cancel: 'newTaskCancel',
-            abort: 'newTaskAbort',
+            reject: 'newTaskReject',
         });
         newTaskImpl = expect.createSpy().andReturn(newTaskResultFn);
         handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], 'ctx', {
             cancel: 'ctxTaskCancel',
-            abort: 'ctxTaskAbort',
+            reject: 'ctxTaskReject',
             waitFor: expect.createSpy(),
             onError: ctxTaskOnError,
             onCancel: ctxTaskOnCancel,
         })
             .catch(done)
             .then(() => {
-                expect(newTaskOnError).toHaveBeenCalledWith('ctxTaskAbort');
-                expect(ctxTaskOnError).toHaveBeenCalledWith('newTaskAbort');
+                expect(newTaskOnError).toHaveBeenCalledWith('ctxTaskReject');
+                expect(ctxTaskOnError).toHaveBeenCalledWith('newTaskReject');
                 expect(ctxTaskOnCancel).toHaveBeenCalledWith('newTaskCancel');
                 done();
             })

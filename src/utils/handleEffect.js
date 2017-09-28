@@ -25,6 +25,13 @@ export const getEffectPromise = (effect, ctx, task) => {
     return handleEffectLitteral(effect, ctx, task);
 };
 
+/*
+ * Resolve an effect
+ * effect: the effect to resolve, (effect | [effect, ...] | { effect, ...})
+ * ctx: a context literal used to share state between effect
+ * task: the task that triggered the effect
+ * return a promise resolving with the effect result
+ */
 export default (effect, ctx, task) =>
     getEffectPromise(effect, ctx, task);
 

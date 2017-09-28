@@ -69,7 +69,7 @@ describe('handleForkEffectFactory', () => {
             .catch(done)
             .then(() => {
                 expect(newTaskOnError).toHaveBeenCalledWith('ctxTaskReject');
-                expect(ctxTaskOnError).toHaveBeenCalledWith('newTaskReject');
+                expect(ctxTaskOnError).toHaveBeenCalledWith('newTaskCancel');
                 expect(ctxTaskOnCancel).toHaveBeenCalledWith('newTaskCancel');
                 done();
             })

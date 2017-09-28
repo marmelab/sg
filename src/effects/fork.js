@@ -8,7 +8,7 @@ export const handleForkEffectFactory = newTaskImpl => ([callable, ...args], curr
             currentTask.waitFor(forkedTask.done());
             forkedTask.onError(currentTask.reject);
             currentTask.onCancel(forkedTask.cancel);
-            currentTask.onError(forkedTask.reject);
+            currentTask.onError(forkedTask.cancel);
             resolve(forkedTask);
         } catch (error) {
             reject(error);

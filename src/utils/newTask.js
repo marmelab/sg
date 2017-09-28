@@ -2,6 +2,8 @@ import isGenerator from './isGenerator';
 import deferred from './deferred';
 import sagaIterator from './sagaIterator';
 
+const CANCEL = Symbol('CANCEL');
+
 /*
  * Take a generator a context and some arguments, and execute the generator returning a task
  * Task:
@@ -26,35 +28,34 @@ export default function newTask(generator) {
 
         const waitFor = p => forkedPromises.push(p);
 
-        const resolveSaga = value =>
-            Promise.all(forkedPromises)
-                .then(() => {
-                    resolve(value);
-                })
-                .catch(reject);
-
         const errorHandlers = [];
-        const onError = fn =>
-            errorHandlers.push(fn);
+        const onError = fn => errorHandlers.push(fn);
 
         const cancelHandlers = [];
-        const onCancel = fn =>
-            cancelHandlers.push(fn);
+        const onCancel = fn => cancelHandlers.push(fn);
 
-        promise.catch(error => errorHandlers.map(fn => fn(error)));
+        const taskPromise = promise
+            .then((value) => {
+                if (value === CANCEL) {
+                    iterator.cancelled = true;
+                    cancelHandlers.map(handler => handler());
+                    return 'this task has been cancelled';
+                }
+                return Promise.all(forkedPromises).then(() => value);
+            })
+            .catch((error) => {
+                errorHandlers.map(fn => fn(error));
+                throw error;
+            });
 
         const task = {
             waitFor,
             reject,
-            resolve: resolveSaga,
-            cancel: () => {
-                resolve();
-                task.cancelled = true;
-                cancelHandlers.map(handler => handler());
-            },
+            resolve,
+            cancel: () => resolve(CANCEL),
             onError,
             onCancel,
-            done: () => promise,
+            done: () => taskPromise,
         };
 
         const iterateSaga = sagaIterator(iterator, task);

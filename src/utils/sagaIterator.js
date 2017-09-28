@@ -14,7 +14,7 @@ import handleEffect from './handleEffect';
 export const sagaIteratorFactory = handleEffectImpl => (iterator, task) =>
     async function iterateSaga(data, isError) {
         try {
-            if (task.cancelled) {
+            if (iterator.cancelled) {
                 return null;
             }
             const { done, value } = isError ? iterator.throw(data) : iterator.next(data);

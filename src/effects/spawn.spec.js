@@ -8,14 +8,14 @@ describe('handleSpawnEffect', () => {
     before(() => {
         newTaskResultFn = expect.createSpy().andReturn({
             done: expect.createSpy().andReturn(Promise.resolve('task object')),
-            onError: expect.createSpy
+            onError: expect.createSpy(),
         });
         newTaskImpl = expect.createSpy().andReturn(newTaskResultFn);
     });
 
     it('should call newTaskImpl with received arg', () => {
-        handleSpawnEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], { task: {} });
-        expect(newTaskImpl).toHaveBeenCalledWith('arg1_1', { task: {} });
+        handleSpawnEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3']);
+        expect(newTaskImpl).toHaveBeenCalledWith('arg1_1');
         expect(newTaskResultFn).toHaveBeenCalledWith('arg1_2', 'arg1_3');
     });
 

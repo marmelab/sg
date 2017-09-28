@@ -14,8 +14,8 @@ describe('handleForkEffectFactory', () => {
     });
 
     it('should call newTaskImpl with received arg', () => {
-        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], { task: {} });
-        expect(newTaskImpl).toHaveBeenCalledWith('arg1_1', { task: {} });
+        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3']);
+        expect(newTaskImpl).toHaveBeenCalledWith('arg1_1');
         expect(newTaskResultFn).toHaveBeenCalledWith('arg1_2', 'arg1_3');
     });
 
@@ -24,7 +24,7 @@ describe('handleForkEffectFactory', () => {
         const cancel = expect.createSpy();
         const onError = expect.createSpy();
         const onCancel = expect.createSpy();
-        handleForkEffectFactory(newTaskImpl)('arg1', 'ctx', { waitFor, cancel, onError, onCancel })
+        handleForkEffectFactory(newTaskImpl)('arg1', { waitFor, cancel, onError, onCancel })
         .then(result => result.done())
         .then((result) => {
             expect(result).toBe('task object');
@@ -37,7 +37,7 @@ describe('handleForkEffectFactory', () => {
         newTaskImpl = () => () => {
             throw new Error('Boom');
         };
-        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], 'ctx', 'task')
+        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], 'task')
             .then(() => {
                 throw new Error('handleForkEffect should have thrown an error');
             })
@@ -59,7 +59,7 @@ describe('handleForkEffectFactory', () => {
             reject: 'newTaskReject',
         });
         newTaskImpl = expect.createSpy().andReturn(newTaskResultFn);
-        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], 'ctx', {
+        handleForkEffectFactory(newTaskImpl)(['arg1_1', 'arg1_2', 'arg1_3'], {
             cancel: 'ctxTaskCancel',
             reject: 'ctxTaskReject',
             waitFor: expect.createSpy(),

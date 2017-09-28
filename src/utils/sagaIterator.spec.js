@@ -7,7 +7,7 @@ describe('sagaIterator', () => {
         expect(sagaIterator()).toBeA('function');
     });
 
-    describe.only('iterateSaga', () => {
+    describe('iterateSaga', () => {
         it('should return if iterator.cancelled is true without trying to do anything', () => {
             const iterator = {
                 next: expect.createSpy(),
@@ -17,7 +17,7 @@ describe('sagaIterator', () => {
             const abortSaga = expect.createSpy();
             const handleEffect = expect.createSpy();
 
-            const iterateSaga = sagaIterator(handleEffect)(iterator, 'ctx', {
+            const iterateSaga = sagaIterator(handleEffect)(iterator, {
                 cancelled: true,
                 resolve: resolveSaga,
                 reject: abortSaga,
@@ -44,7 +44,7 @@ describe('sagaIterator', () => {
                 reject: abortSaga,
             };
 
-            const iterateSaga = sagaIterator(handleEffect)(iterator, 'ctx', task);
+            const iterateSaga = sagaIterator(handleEffect)(iterator, task);
             iterateSaga('data', false);
             expect(iterator.next).toHaveBeenCalledWith('data');
             expect(iterator.throw).toNotHaveBeenCalled();
@@ -64,7 +64,7 @@ describe('sagaIterator', () => {
                 reject: abortSaga,
             };
 
-            const iterateSaga = sagaIterator(handleEffect)(iterator, 'ctx', task);
+            const iterateSaga = sagaIterator(handleEffect)(iterator, task);
             iterateSaga('data', false);
             expect(iterator.next).toHaveBeenCalledWith('data');
             expect(resolveSaga).toHaveBeenCalledWith('next value');
@@ -88,7 +88,7 @@ describe('sagaIterator', () => {
                 reject: abortSaga,
             };
 
-            const iterateSaga = sagaIterator(handleEffect)(iterator, 'ctx', task);
+            const iterateSaga = sagaIterator(handleEffect)(iterator, task);
             iterateSaga('data', false);
             expect(iterator.next).toHaveBeenCalledWith('data');
             expect(iterator.throw).toNotHaveBeenCalled();
@@ -112,13 +112,13 @@ describe('sagaIterator', () => {
                 reject: abortSaga,
             };
 
-            const iterateSaga = sagaIterator(handleEffect)(iterator, 'ctx', task);
+            const iterateSaga = sagaIterator(handleEffect)(iterator, task);
             iterateSaga('data', false);
             expect(iterator.next).toHaveBeenCalledWith('data');
             expect(iterator.throw).toNotHaveBeenCalled();
             expect(resolveSaga).toNotHaveBeenCalled();
             expect(abortSaga).toNotHaveBeenCalled();
-            expect(handleEffect).toHaveBeenCalledWith('next value', 'ctx', task);
+            expect(handleEffect).toHaveBeenCalledWith('next value', task);
         });
 
         it('should call iterator.throw with data if isError is true', () => {
@@ -136,7 +136,7 @@ describe('sagaIterator', () => {
                 reject: abortSaga,
             };
 
-            const iterateSaga = sagaIterator(handleEffect)(iterator, 'ctx', task);
+            const iterateSaga = sagaIterator(handleEffect)(iterator, task);
             iterateSaga('data', true);
             expect(iterator.throw).toHaveBeenCalledWith('data');
             expect(iterator.next).toNotHaveBeenCalled();
@@ -157,7 +157,7 @@ describe('sagaIterator', () => {
                 reject: abortSaga,
             };
 
-            const iterateSaga = sagaIterator(handleEffect)(iterator, 'ctx', task);
+            const iterateSaga = sagaIterator(handleEffect)(iterator, task);
             iterateSaga('data', true);
             expect(iterator.throw).toHaveBeenCalledWith('data');
             expect(resolveSaga).toHaveBeenCalledWith('next value');
@@ -181,7 +181,7 @@ describe('sagaIterator', () => {
                 reject: abortSaga,
             };
 
-            const iterateSaga = sagaIterator(handleEffect)(iterator, 'ctx', task);
+            const iterateSaga = sagaIterator(handleEffect)(iterator, task);
             iterateSaga('data', true);
             expect(iterator.throw).toHaveBeenCalledWith('data');
             expect(iterator.next).toNotHaveBeenCalled();
@@ -214,13 +214,13 @@ describe('sagaIterator', () => {
                 reject: abortSaga,
             };
 
-            const iterateSaga = sagaIterator(handleEffect)(iterator, 'ctx', task);
+            const iterateSaga = sagaIterator(handleEffect)(iterator, task);
             iterateSaga('data', true);
             expect(iterator.throw).toHaveBeenCalledWith('data');
             expect(iterator.next).toNotHaveBeenCalled();
             expect(resolveSaga).toNotHaveBeenCalled();
             expect(abortSaga).toNotHaveBeenCalled();
-            expect(handleEffect).toHaveBeenCalledWith('next value', 'ctx', task);
+            expect(handleEffect).toHaveBeenCalledWith('next value', task);
         });
     });
 });

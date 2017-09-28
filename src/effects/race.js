@@ -25,13 +25,10 @@ export const cancelTasks = (tasks, except) =>
 export const wrapInGenerator = effect =>
     function* () { return yield effect; };
 
-export const createTasksFromEffects = (newTaskImpl, wrapInGeneratorImpl) => (effects, ctx) =>
+export const createTasksFromEffects = (newTaskImpl, wrapInGeneratorImpl) => effects =>
     effects
     .map(wrapInGeneratorImpl)
-    .map(gen => newTaskImpl(
-        gen,
-        ctx
-    ))
+    .map(gen => newTaskImpl(gen))
     .map(task => task());
 
 export const executeOneTask = (task, index) => task.done().then(
@@ -47,9 +44,9 @@ export const handleRaceEffect = (
     createTasksFromEffectsImpl,
     executeTasksImpl,
     cancelTasksImpl
-) => async ([effects], ctx) => {
+) => async ([effects]) => {
     const { effectArray, keys } = getEffectArrayImpl(effects);
-    const tasks = createTasksFromEffectsImpl(effectArray, ctx);
+    const tasks = createTasksFromEffectsImpl(effectArray);
 
     const { result, error, index } = await executeTasksImpl(tasks);
     cancelTasksImpl(tasks, index);

@@ -13,7 +13,7 @@ import sagaIterator from './sagaIterator';
  *      done: function that return the internal promise
  */
 
-export default function newTask(generator, ctx = {}) {
+export default function newTask(generator) {
     if (!isGenerator(generator)) {
         throw new Error('sg need a generator function');
     }
@@ -57,7 +57,7 @@ export default function newTask(generator, ctx = {}) {
             done: () => promise,
         };
 
-        const iterateSaga = sagaIterator(iterator, ctx, task);
+        const iterateSaga = sagaIterator(iterator, task);
 
         iterateSaga();
 

@@ -91,31 +91,9 @@ Calls a continuation passing style function.
 ```js
 const add = (a, b, cb) => cb(null, a + b);
 ```
-
-### put
-
-emit an event
-
-```js
-yield put('my event', { payload: data });
-```
-
-### take
-
-Waits for event sent by put and return its payload
-
-```js
-const payload = yield take('my event'); // { payload: data }
-```
-
 ### spawn
 
 Launches another sg generator, but do not wait for it to end, returning a [task](#task) object.
-
-```js
-const task = yield spawn(sgGenerator);
-```
-
 ### fork
 
 Same as spawn, but errors from the forked generator will bubble up to the parent generator making it fail. Also the parent generator will wait for the forked generator to end before resolving.
@@ -151,7 +129,33 @@ const { user, cancel } = yield race({
 });
 ```
 
-### takeEvery
+### events
+
+A function initializing a group of effect to handle event.
+It take an optional eventEmitter. The eventEmitter must implement an emit and an once method.
+It returns the following effects :
+
+#### put
+
+emit an event
+
+```js
+yield put('my event', { payload: data });
+```
+
+#### take
+
+Waits for event sent by put and return its payload
+
+```js
+const payload = yield take('my event'); // { payload: data }
+```
+
+```js
+const task = yield spawn(sgGenerator);
+```
+
+#### takeEvery
 
 forks given generator each time given event is triggered.
 It is the same as forking the following generator:
@@ -167,10 +171,16 @@ function* takeEverySaga(type, gen, ...args) {
 
 ### task
 
-Object returned by fork and spawn. It has a done and cancel method.
+The task object, it get passed to the effects handler allowing them to reject, cancel, and add listener on the task event. It is also returned by fork and spawn. It has the following methods :
 
-- done: returns a promise, which resolves with task result or rejects with task error.
+- promise: the task promise, which resolves with task result or rejects with task error.
 - cancel: Cancels the task if it is still running. This in turn will also cancel all children of this task.
+- waitFor: add a promise for the task to `waitFor` before resolving. Used by the forkEffect to tell its parent task to wait for the new forked task to end
+- reject: reject the task promise with the given error, used internally to abort the task when the generator threw an error. Note that it will also cancel any forked task and bubble up, to the parent task if the current task was forked.
+- resolve: resolve the task promise with the given result, used internally in sagaIterator to end the task once the generator has finished its execution. Note that the promise will still wait for any forked task or promise passed to the `waitFor` method. You should never have to call this yourself.
+- cancel: cancel the task, it's iteration get stopped, and the internal promise become resolved. It's forked task get also cancelled.
+- onError: add error listener to be called when the task intenal promise is rejected.
+- onCancel: add cancel listener to be called when the task get cancelled.
 
 ### Adding your own custom effects with createEffect
 
@@ -180,13 +190,12 @@ It takes a type, and an handler.
 - Type:
     A string with the effect name
 - Handler:
-    a function returning a promise and that receives three arguments:
+    a function returning a promise and that receives two arguments:
+
     - effect parameters:
         an array with the list of argument passed to the effect function
-    - emitter
-        An event emitter used internally for the take and put effects.
-    - id
-        The internal id of the current saga. You will probably never need this.
+    - task
+        the task that triggered the effect
 
 Example of custom effect:
 
@@ -225,9 +234,3 @@ During execution handleSql will get called like so
 ```js
 handleSql(['INSERT ... INTO user', userData]);
 ```
-
-## Injecting Custom EventEmitter
-
-Sg use an eventEmitter internally to handle take and put effects.
-It is possible to pass your own eventEmitter to sg. This allows to take events from this event emitter.
-Your event emitter must extends node event emitter.

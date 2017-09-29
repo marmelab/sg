@@ -31,7 +31,7 @@ export const createTasksFromEffects = (newTaskImpl, wrapInGeneratorImpl) => effe
     .map(gen => newTaskImpl(gen))
     .map(task => task());
 
-export const executeOneTask = (task, index) => task.done().then(
+export const executeOneTask = (task, index) => task.promise.then(
     result => ({ result, index }),
     error => ({ error, index }),
 );

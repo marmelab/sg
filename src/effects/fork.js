@@ -5,7 +5,7 @@ export const handleForkEffectFactory = newTaskImpl => ([callable, ...args], curr
     new Promise((resolve, reject) => {
         try {
             const forkedTask = newTaskImpl(callable)(...args);
-            currentTask.waitFor(forkedTask.done());
+            currentTask.waitFor(forkedTask.promise);
             forkedTask.onError(currentTask.reject);
             currentTask.onCancel(forkedTask.cancel);
             currentTask.onError(forkedTask.cancel);

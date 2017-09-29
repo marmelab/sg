@@ -447,7 +447,7 @@ describe('sg', () => {
             };
 
             sg(gen)()
-                .then(t => t.done())
+                .then(task => task.promise)
                 .then((result) => {
                     expect(result).toBe('this task has been cancelled');
                     done();

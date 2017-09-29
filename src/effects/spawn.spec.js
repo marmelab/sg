@@ -7,7 +7,7 @@ describe('handleSpawnEffect', () => {
     let newTaskResultFn;
     before(() => {
         newTaskResultFn = expect.createSpy().andReturn({
-            done: expect.createSpy().andReturn(Promise.resolve('task object')),
+            promise: Promise.resolve('task object'),
             onError: expect.createSpy(),
         });
         newTaskImpl = expect.createSpy().andReturn(newTaskResultFn);
@@ -24,7 +24,7 @@ describe('handleSpawnEffect', () => {
         const cancel = expect.createSpy();
         const onError = expect.createSpy();
         handleSpawnEffectFactory(newTaskImpl)('arg1', { task: { waitFor, cancel, onError } })
-            .then(result => result.done())
+            .then(result => result.promise)
             .then((result) => {
                 expect(result).toBe('task object');
                 cb();

@@ -7,7 +7,7 @@ describe('handleForkEffectFactory', () => {
     let newTaskResultFn;
     before(() => {
         newTaskResultFn = expect.createSpy().andReturn({
-            done: expect.createSpy().andReturn(Promise.resolve('task object')),
+            promise: Promise.resolve('task object'),
             onError: expect.createSpy(),
         });
         newTaskImpl = expect.createSpy().andReturn(newTaskResultFn);
@@ -19,18 +19,18 @@ describe('handleForkEffectFactory', () => {
         expect(newTaskResultFn).toHaveBeenCalledWith('arg1_2', 'arg1_3');
     });
 
-    it('should resolve to a function returning newTaskImpl resulting promise', (cb) => {
+    it('should resolve to a function returning newTaskImpl resulting promise', (done) => {
         const waitFor = expect.createSpy();
         const cancel = expect.createSpy();
         const onError = expect.createSpy();
         const onCancel = expect.createSpy();
         handleForkEffectFactory(newTaskImpl)('arg1', { waitFor, cancel, onError, onCancel })
-        .then(result => result.done())
+        .then(result => result.promise)
         .then((result) => {
             expect(result).toBe('task object');
-            cb();
+            done();
         })
-        .catch(cb);
+        .catch(done);
     });
 
     it('should reject with error thrown by newTaskImpl if any', (done) => {

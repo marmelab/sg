@@ -12,7 +12,7 @@ const CANCEL = Symbol('CANCEL');
  *      cancel: cancel the task, it's iteration get stopped, and the internal promise become resolved
  *      onError: add error listener to be called when the task intenal promise is rejected.
  *      onCancel: add cancel listener to be called when the task get cancelled
- *      done: function that return the internal promise
+ *      promise: a promise that will resolve when the task end or reject if it fail
  */
 
 export default function newTask(generator) {
@@ -55,7 +55,7 @@ export default function newTask(generator) {
             cancel: () => resolve(CANCEL),
             onError,
             onCancel,
-            done: () => taskPromise,
+            promise: taskPromise,
         };
 
         const iterateSaga = sagaIterator(iterator, task);

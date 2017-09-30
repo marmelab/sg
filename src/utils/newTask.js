@@ -1,6 +1,4 @@
-import isGenerator from './isGenerator';
 import deferred from './deferred';
-import sagaIterator from './sagaIterator';
 
 const CANCEL = Symbol('CANCEL');
 
@@ -15,53 +13,45 @@ const CANCEL = Symbol('CANCEL');
  *      promise: a promise that will resolve when the task end or reject if it fail
  */
 
-export default function newTask(generator) {
-    if (!isGenerator(generator)) {
-        throw new Error('sg need a generator function');
-    }
+export default function newTask() {
+    const { promise, resolve, reject } = deferred();
 
-    return (...args) => {
-        const { promise, resolve, reject } = deferred();
-        const iterator = generator(...args);
+    const forkedPromises = [];
 
-        const forkedPromises = [];
+    const waitFor = p => forkedPromises.push(p);
 
-        const waitFor = p => forkedPromises.push(p);
+    const errorHandlers = [];
+    const onError = fn => errorHandlers.push(fn);
 
-        const errorHandlers = [];
-        const onError = fn => errorHandlers.push(fn);
+    const cancelHandlers = [];
+    const onCancel = fn => cancelHandlers.push(fn);
 
-        const cancelHandlers = [];
-        const onCancel = fn => cancelHandlers.push(fn);
+    let cancelled = false;
 
-        const taskPromise = promise
-            .then((value) => {
-                if (value === CANCEL) {
-                    iterator.cancelled = true;
-                    cancelHandlers.map(handler => handler());
-                    return 'this task has been cancelled';
-                }
-                return Promise.all(forkedPromises).then(() => value);
-            })
-            .catch((error) => {
-                errorHandlers.map(fn => fn(error));
-                throw error;
-            });
+    const taskPromise = promise
+        .then((value) => {
+            if (value === CANCEL) {
+                cancelled = true;
+                cancelHandlers.map(handler => handler());
+                return 'this task has been cancelled';
+            }
+            return Promise.all(forkedPromises).then(() => value);
+        })
+        .catch((error) => {
+            errorHandlers.map(fn => fn(error));
+            throw error;
+        });
 
-        const task = {
-            waitFor,
-            reject,
-            resolve,
-            cancel: () => resolve(CANCEL),
-            onError,
-            onCancel,
-            promise: taskPromise,
-        };
-
-        const iterateSaga = sagaIterator(iterator, task);
-
-        iterateSaga();
-
-        return task;
+    const task = {
+        waitFor,
+        reject,
+        resolve,
+        cancel: () => resolve(CANCEL),
+        onError,
+        onCancel,
+        cancelled: () => cancelled,
+        promise: taskPromise,
     };
+
+    return task;
 }

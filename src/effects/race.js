@@ -1,5 +1,5 @@
 import createEffect from './createEffect';
-import newTask from '../utils/newTask';
+import executeSaga from '../utils/executeSaga';
 
 export const getEffectArray = (effects) => {
     if (Array.isArray(effects)) {
@@ -25,10 +25,10 @@ export const cancelTasks = (tasks, except) =>
 export const wrapInGenerator = effect =>
     function* () { return yield effect; };
 
-export const createTasksFromEffects = (newTaskImpl, wrapInGeneratorImpl) => effects =>
+export const createTasksFromEffects = (executeSagaImpl, wrapInGeneratorImpl) => effects =>
     effects
     .map(wrapInGeneratorImpl)
-    .map(gen => newTaskImpl(gen))
+    .map(gen => executeSagaImpl(gen))
     .map(task => task());
 
 export const executeOneTask = (task, index) => task.promise.then(
@@ -59,7 +59,7 @@ export const handleRaceEffect = (
 
 export default createEffect('put', handleRaceEffect(
     getEffectArray,
-    createTasksFromEffects(newTask, wrapInGenerator),
+    createTasksFromEffects(executeSaga, wrapInGenerator),
     executeTasks(executeOneTask),
     cancelTasks
 ));

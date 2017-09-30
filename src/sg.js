@@ -1,9 +1,13 @@
-import newTask from './utils/newTask';
+import executeSaga from './utils/executeSaga';
 
 function sg(generator) {
-    const task = newTask(generator);
+    const execute = executeSaga(generator);
 
-    return (...args) => task(...args).promise;
+    return (...args) => {
+        const task = execute(...args);
+
+        return task.promise;
+    };
 }
 
 export default sg;

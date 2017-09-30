@@ -1,7 +1,8 @@
 import handleEffect from './handleEffect';
 
 /*
- * sagaIteratorFactory: Take the handleEffect function and return a saga iterator
+ * sagaIteratorFactory: Take a function and then an iterator and a task
+ * And map the function on the iterator yielded value
  *
  * sagaIterator: iterate over an iterator updating the task object accordingly
  *      iterator: the iterator object
@@ -14,7 +15,7 @@ import handleEffect from './handleEffect';
 export const sagaIteratorFactory = handleEffectImpl => (iterator, task) =>
     async function iterateSaga(data, isError) {
         try {
-            if (iterator.cancelled) {
+            if (task.cancelled()) {
                 return null;
             }
             const { done, value } = isError ? iterator.throw(data) : iterator.next(data);

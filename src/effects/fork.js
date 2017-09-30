@@ -1,10 +1,10 @@
-import newTask from '../utils/newTask';
+import executeSaga from '../utils/executeSaga';
 import createEffect from './createEffect';
 
-export const handleForkEffectFactory = newTaskImpl => ([callable, ...args], currentTask) =>
+export const handleForkEffectFactory = executeSagaImpl => ([callable, ...args], currentTask) =>
     new Promise((resolve, reject) => {
         try {
-            const forkedTask = newTaskImpl(callable)(...args);
+            const forkedTask = executeSagaImpl(callable)(...args);
             currentTask.waitFor(forkedTask.promise);
             forkedTask.onError(currentTask.reject);
             currentTask.onCancel(forkedTask.cancel);
@@ -15,6 +15,6 @@ export const handleForkEffectFactory = newTaskImpl => ([callable, ...args], curr
         }
     });
 
-export const handleForkEffect = handleForkEffectFactory(newTask);
+export const handleForkEffect = handleForkEffectFactory(executeSaga);
 
 export default createEffect('fork', handleForkEffect);

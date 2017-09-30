@@ -1,16 +1,16 @@
-import newTask from '../utils/newTask';
+import executeSaga from '../utils/executeSaga';
 import createEffect from './createEffect';
 
-export const handleSpawnEffectFactory = newTaskImpl => ([callable, ...args]) =>
+export const handleSpawnEffectFactory = executeSagaImpl => ([callable, ...args]) =>
     new Promise((resolve, reject) => {
         try {
-            const task = newTaskImpl(callable)(...args);
+            const task = executeSagaImpl(callable)(...args);
             resolve(task);
         } catch (error) {
             reject(error);
         }
     });
 
-export const handleSpawnEffect = handleSpawnEffectFactory(newTask);
+export const handleSpawnEffect = handleSpawnEffectFactory(executeSaga);
 
 export default createEffect('fork', handleSpawnEffect);

@@ -1,9 +1,9 @@
 import deferred from './deferred';
 
-const CANCEL = Symbol('CANCEL');
+export const CANCEL = Symbol('CANCEL');
 
 /*
- * Take a generator a context and some arguments, and execute the generator returning a task
+ * Create a task
  * Task:
  *      waitFor: add a promise for the task to waitFor before resolving used by the forkEffect to tell its parent task to wait for the new forked task to end
  *      abort: reject the internal promise with the given error, used internally to abort the task when the generator threw an error

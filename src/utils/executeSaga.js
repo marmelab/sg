@@ -1,5 +1,5 @@
 import handleEffect from './handleEffect';
-import newTask from './newTask';
+import createTask from './createTask';
 import sagaIterator from './sagaIterator';
 
 /*
@@ -13,8 +13,8 @@ import sagaIterator from './sagaIterator';
  * iterateSaga:
  *      Execute the iterator recursively
  */
-export const executeSagaFactory = (handleEffectImpl, newTaskImpl, sagaIteratorImpl) => generator => (...args) => {
-    const task = newTaskImpl();
+export const executeSagaFactory = (handleEffectImpl, createTaskImpl, sagaIteratorImpl) => generator => (...args) => {
+    const task = createTaskImpl();
     const iterator = generator(...args);
 
     sagaIteratorImpl(iterator, task)();
@@ -22,4 +22,4 @@ export const executeSagaFactory = (handleEffectImpl, newTaskImpl, sagaIteratorIm
     return task;
 };
 
-export default executeSagaFactory(handleEffect, newTask, sagaIterator);
+export default executeSagaFactory(handleEffect, createTask, sagaIterator);

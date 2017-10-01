@@ -2,8 +2,8 @@
 
 Utility to handle side effects with generators. Inspired by [redux-saga](https://github.com/yelouafi/redux-saga) and [co](https://github.com/tj/co).
 
-An effect is an object that describe a task, but do not execute it.
-This allows to separate the tasks scheduling from the tasks themself.
+An effect is an object that describe an operation, but do not execute it.
+This allows to separate the operation scheduling from the operations themself.
 
 ## install
 
@@ -39,7 +39,7 @@ const effect = call(console.log, 'hello world');
 // effect:
 {
     type: 'call',
-    handler: // function that will execute the effect: called with arg, and returning a promise
+    handler: // function that will execute the effect: called with args, and a task object representing the state of the saga. Return a promise
     args: [console.log, 'hello world'], // args passed to the effect function
 }
 ```
@@ -91,9 +91,11 @@ Calls a continuation passing style function.
 ```js
 const add = (a, b, cb) => cb(null, a + b);
 ```
+
 ### spawn
 
 Launches another sg generator, but do not wait for it to end, returning a [task](#task) object.
+
 ### fork
 
 Same as spawn, but errors from the forked generator will bubble up to the parent generator making it fail. Also the parent generator will wait for the forked generator to end before resolving.
@@ -112,7 +114,7 @@ yield cancel(task);
 
 ### join
 
-takes a task returned by fork or spawn, and joins it, waiting for the task to end or throw an error.
+takes a task returned by fork or spawn, and joins it, waiting for the task to end or throw an error to resume the generator.
 
 ```js
 const result = yield join(task);
@@ -178,9 +180,9 @@ The task object, it get passed to the effects handler allowing them to reject, c
 - waitFor: add a promise for the task to `waitFor` before resolving. Used by the forkEffect to tell its parent task to wait for the new forked task to end
 - reject: reject the task promise with the given error, used internally to abort the task when the generator threw an error. Note that it will also cancel any forked task and bubble up, to the parent task if the current task was forked.
 - resolve: resolve the task promise with the given result, used internally in sagaIterator to end the task once the generator has finished its execution. Note that the promise will still wait for any forked task or promise passed to the `waitFor` method. You should never have to call this yourself.
-- cancel: cancel the task, it's iteration get stopped, and the internal promise become resolved. It's forked task get also cancelled.
 - onError: add error listener to be called when the task intenal promise is rejected.
 - onCancel: add cancel listener to be called when the task get cancelled.
+- cancelled: return true if the task has been cancelled false otherwise
 
 ### Adding your own custom effects with createEffect
 

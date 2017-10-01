@@ -447,8 +447,9 @@ describe('sg', () => {
             };
 
             sg(gen)()
-                .then((t) => {
-                    expect(t.cancelled).toBe(true);
+                .then(task => task.promise)
+                .then((result) => {
+                    expect(result).toBe('this task has been cancelled');
                     done();
                 })
                 .catch(done);

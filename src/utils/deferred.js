@@ -1,3 +1,7 @@
+/*
+ * deferred: () => {}
+ * Create a new Promise and return it along with its internal resolve and reject function.
+ */
 export default () => {
     const def = {};
     def.promise = new Promise((resolve, reject) => {

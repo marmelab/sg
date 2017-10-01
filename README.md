@@ -2,8 +2,8 @@
 
 Utility to handle side effects with generators. Inspired by [redux-saga](https://github.com/yelouafi/redux-saga) and [co](https://github.com/tj/co).
 
-An effect is an object that describe a task, but do not execute it.
-This allows to separate the tasks scheduling from the tasks themself.
+An effect is an object that describe an operation, but do not execute it.
+This allows to separate the operation scheduling from the operations themself.
 
 ## install
 
@@ -39,7 +39,7 @@ const effect = call(console.log, 'hello world');
 // effect:
 {
     type: 'call',
-    handler: // function that will execute the effect: called with arg, and returning a promise
+    handler: // function that will execute the effect: called with args, and a task object representing the state of the saga. Return a promise
     args: [console.log, 'hello world'], // args passed to the effect function
 }
 ```
@@ -92,29 +92,9 @@ Calls a continuation passing style function.
 const add = (a, b, cb) => cb(null, a + b);
 ```
 
-### put
-
-emit an event
-
-```js
-yield put('my event', { payload: data });
-```
-
-### take
-
-Waits for event sent by put and return its payload
-
-```js
-const payload = yield take('my event'); // { payload: data }
-```
-
 ### spawn
 
 Launches another sg generator, but do not wait for it to end, returning a [task](#task) object.
-
-```js
-const task = yield spawn(sgGenerator);
-```
 
 ### fork
 
@@ -134,7 +114,7 @@ yield cancel(task);
 
 ### join
 
-takes a task returned by fork or spawn, and joins it, waiting for the task to end or throw an error.
+takes a task returned by fork or spawn, and joins it, waiting for the task to end or throw an error to resume the generator.
 
 ```js
 const result = yield join(task);
@@ -151,7 +131,33 @@ const { user, cancel } = yield race({
 });
 ```
 
-### takeEvery
+### events
+
+A function initializing a group of effect to handle event.
+It take an optional eventEmitter. The eventEmitter must implement an emit and an once method.
+It returns the following effects :
+
+#### put
+
+emit an event
+
+```js
+yield put('my event', { payload: data });
+```
+
+#### take
+
+Waits for event sent by put and return its payload
+
+```js
+const payload = yield take('my event'); // { payload: data }
+```
+
+```js
+const task = yield spawn(sgGenerator);
+```
+
+#### takeEvery
 
 forks given generator each time given event is triggered.
 It is the same as forking the following generator:
@@ -167,10 +173,16 @@ function* takeEverySaga(type, gen, ...args) {
 
 ### task
 
-Object returned by fork and spawn. It has a done and cancel method.
+The task object, it get passed to the effects handler allowing them to reject, cancel, and add listener on the task event. It is also returned by fork and spawn. It has the following methods :
 
-- done: returns a promise, which resolves with task result or rejects with task error.
+- promise: the task promise, which resolves with task result or rejects with task error.
 - cancel: Cancels the task if it is still running. This in turn will also cancel all children of this task.
+- waitFor: add a promise for the task to `waitFor` before resolving. Used by the forkEffect to tell its parent task to wait for the new forked task to end
+- reject: reject the task promise with the given error, used internally to abort the task when the generator threw an error. Note that it will also cancel any forked task and bubble up, to the parent task if the current task was forked.
+- resolve: resolve the task promise with the given result, used internally in sagaIterator to end the task once the generator has finished its execution. Note that the promise will still wait for any forked task or promise passed to the `waitFor` method. You should never have to call this yourself.
+- onError: add error listener to be called when the task intenal promise is rejected.
+- onCancel: add cancel listener to be called when the task get cancelled.
+- cancelled: return true if the task has been cancelled false otherwise
 
 ### Adding your own custom effects with createEffect
 
@@ -180,13 +192,12 @@ It takes a type, and an handler.
 - Type:
     A string with the effect name
 - Handler:
-    a function returning a promise and that receives three arguments:
+    a function returning a promise and that receives two arguments:
+
     - effect parameters:
         an array with the list of argument passed to the effect function
-    - emitter
-        An event emitter used internally for the take and put effects.
-    - id
-        The internal id of the current saga. You will probably never need this.
+    - task
+        the task that triggered the effect
 
 Example of custom effect:
 
@@ -225,9 +236,3 @@ During execution handleSql will get called like so
 ```js
 handleSql(['INSERT ... INTO user', userData]);
 ```
-
-## Injecting Custom EventEmitter
-
-Sg use an eventEmitter internally to handle take and put effects.
-It is possible to pass your own eventEmitter to sg. This allows to take events from this event emitter.
-Your event emitter must extends node event emitter.

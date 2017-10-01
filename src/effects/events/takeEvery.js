@@ -8,7 +8,7 @@ export const takeEverySaga = take => function* (type, gen, ...args) {
     }
 };
 
-export const handleTakeEveryEffect = take => ([type, gen, ...args], ctx, task) =>
-    handleForkEffect([takeEverySaga(take), type, gen, ...args], ctx, task);
+export const handleTakeEveryEffect = take => ([type, gen, ...args], task) =>
+    handleForkEffect([takeEverySaga(take), type, gen, ...args], task);
 
 export default take => createEffect('takeEvery', handleTakeEveryEffect(take));

@@ -3,17 +3,17 @@ import cancel from '../cancel';
 import fork, { handleForkEffect } from '../fork';
 
 export const takeLatestSaga = take => function* (type, gen, ...args) {
-    let task;
+    let forkedTask;
     while (true) {
         const action = yield take(type);
-        if (task) {
-            yield cancel(task);
+        if (forkedTask) {
+            yield cancel(forkedTask);
         }
-        task = yield fork(gen, ...args.concat(action));
+        forkedTask = yield fork(gen, ...args.concat(action));
     }
 };
 
-export const handleTakeLatestEffect = take => ([type, gen, ...args], emitter, id) =>
-    handleForkEffect([takeLatestSaga(take), type, gen, ...args], emitter, id);
+export const handleTakeLatestEffect = take => ([type, gen, ...args], task) =>
+    handleForkEffect([takeLatestSaga(take), type, gen, ...args], task);
 
 export default take => createEffect('takeEvery', handleTakeLatestEffect(take));

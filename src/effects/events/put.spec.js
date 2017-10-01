@@ -12,14 +12,13 @@ describe('handlePutEffect', () => {
         eventEmitter.emit.reset();
     });
 
-    it('should trigger corresponding listener in ctx', () => {
+    it('should trigger corresponding listener', () => {
         handlePutEffect(['eventType', { payload: 'data' }]);
         expect(eventEmitter.emit).toHaveBeenCalledWith('eventType', { payload: 'data' });
     });
 
     it('should return a promise resolving to undefined', (done) => {
-        const ctx = {};
-        handlePutEffect(['eventType', 'payload'], ctx)
+        handlePutEffect(['eventType', 'payload'])
         .then((result) => {
             expect(result).toBe(undefined);
             done();

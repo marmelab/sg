@@ -22,10 +22,10 @@ describe('Effects: race', () => {
 
         it('should be resolved with { key3: "success" } when executeTasksImpl return a result of success', async () => {
             executeTasksImpl.andReturn({ result: 'success', index: 2 });
-            const result = await handleRaceEffect(['effects'], 'ctx');
+            const result = await handleRaceEffect(['effects']);
             expect(result).toEqual({ key3: 'success' });
             expect(getEffectArrayImpl).toHaveBeenCalledWith('effects');
-            expect(createTasksFromEffectsImpl).toHaveBeenCalledWith('effectArray', 'ctx');
+            expect(createTasksFromEffectsImpl).toHaveBeenCalledWith('effectArray');
             expect(executeTasksImpl).toHaveBeenCalledWith('tasks');
             expect(cancelTasksImpl).toHaveBeenCalledWith('tasks', 2);
         });
@@ -34,14 +34,14 @@ describe('Effects: race', () => {
             executeTasksImpl.andReturn({ error: new Error('boom'), index: 2 });
             let error;
             try {
-                await handleRaceEffect(['effects'], 'ctx');
+                await handleRaceEffect(['effects']);
             } catch (e) {
                 error = e;
             }
             expect(error.message).toBe('boom');
 
             expect(getEffectArrayImpl).toHaveBeenCalledWith('effects');
-            expect(createTasksFromEffectsImpl).toHaveBeenCalledWith('effectArray', 'ctx');
+            expect(createTasksFromEffectsImpl).toHaveBeenCalledWith('effectArray');
             expect(executeTasksImpl).toHaveBeenCalledWith('tasks');
             expect(cancelTasksImpl).toHaveBeenCalledWith('tasks', 2);
         });
@@ -71,11 +71,11 @@ describe('Effects: race', () => {
         const createTasksFromEffects = createTasksFromEffectsFactory(newTask, wrapInGeneratorImpl);
 
         it('should call newTaskImpl with each effects wrapped in gen and execute them', () => {
-            const result = createTasksFromEffects(effects, 'ctx');
+            const result = createTasksFromEffects(effects);
             expect(result).toEqual(['taskObject', 'taskObject']);
             expect(wrapInGeneratorImpl).toHaveBeenCalledWith('effect1', 0, effects);
             expect(wrapInGeneratorImpl).toHaveBeenCalledWith('effect2', 1, effects);
-            expect(newTask).toHaveBeenCalledWith('effect in generator', 'ctx');
+            expect(newTask).toHaveBeenCalledWith('effect in generator');
             expect(task).toHaveBeenCalled();
         });
     });
